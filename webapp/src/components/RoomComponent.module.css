@@ -2,33 +2,57 @@
 .container {
     font-family: 'Arial', sans-serif;
     color: #333;
-    background-color: #f7f7f7;
-    padding: 20px;
-}
-
-.header {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
+    height: 100vh;
+    padding: 10px;
+    background-color: #e9ecef;  /* Outer layer background */
+}
+
+.roomNameContainer {
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 10px;  /* Space between room name and sublayer */
 }
 
 .roomName {
-    color: #0088cc;
+    color: #0088cc;  /* Blue color for the room name */
+    margin: 0;
+}
+
+.subLayer {
+    flex: 1;
+    background-color: #f7f7f7;  /* Same as room name container */
+    border-radius: 12px;
+    padding: 10px;  /* Uniform padding around the sublayer */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .searchInput {
-    margin-top: 10px;
+    box-sizing: border-box;  /* Include padding and border in the element's width */
     padding: 8px;
-    width: 100%;
-    box-sizing: border-box; /* Ensures the padding doesn't affect the width */
-    border: 2px solid #0088cc;
+    width: calc(100% - 20px);  /* Adjust width to account for padding of subLayer */
+    margin: 0 10px;  /* Uniform margin for left and right */
+    border: 2px solid #ccc;  /* Initial border color */
     border-radius: 4px;
+    background-color: #eee;  /* Greyed out by default */
+}
+
+.searchInput:focus {
+    border-color: #0088cc;  /* Blue border on focus */
+}
+
+.trackListContainer {
+    flex: 1;
+    overflow-y: auto;
 }
 
 .adminList, .trackList {
     list-style: none;
     padding: 0;
+    margin-top: 0;
 }
 
 .admin, .track {
@@ -36,12 +60,12 @@
     border: 1px solid #ddd;
     padding: 10px;
     margin-bottom: 5px;
+    border-radius: 8px;
 }
 
-.trackListContainer {
-    margin-top: 20px;
-}
-
-.tracksTitle {
-    color: #0088cc;
+.stickySearch {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #f7f7f7;  /* Ensures the sticky search matches the sublayer background */
 }

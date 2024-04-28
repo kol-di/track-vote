@@ -1,15 +1,19 @@
 /* styles/globals.css */
+
+/* Resets padding and margin to remove browser inconsistencies */
 html, body {
-    height: 100%;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
- }
- 
- #__next {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
- }
- 
+}
+
+/* Sets the height of the body to 100% of the viewport height */
+body {
+    height: 100vh; /* Viewport height ensures the body takes up at least the full height of the screen */
+    overflow-y: auto; /* Allows vertical scrolling if content exceeds the viewport height */
+}
+
+/* Ensures that #__next (the root container by Next.js) also takes the full height */
+#__next {
+    height: 100%;
+    overflow: hidden; /* Typically, you want #__next to not independently scroll */
+}
