@@ -7,6 +7,7 @@ export default async function handler(req, res) {
   await connectDB();
   const { id } = req.query;
 
+  console.log('PIZDEC');
   if (req.method === 'GET') {
     try {
       // Ensures that only valid MongoDB object IDs are processed

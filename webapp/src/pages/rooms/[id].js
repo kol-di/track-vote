@@ -9,6 +9,7 @@ export async function getServerSideProps(context) {
             throw new Error('Failed to fetch');
         }
         const data = await res.json();
+        console.log('FETCH SUCCESS');
         return { props: { roomData: data } };
     } catch (error) {
         // Handle errors, possibly return an error page or notFound: true
@@ -17,6 +18,7 @@ export async function getServerSideProps(context) {
 }
 
 const RoomPage = ({ roomData }) => {
+    console.log('BOUT TO RENDER');
     if (!roomData) return <p>Room not found.</p>;
     return <RoomComponent roomData={roomData} />;
 }

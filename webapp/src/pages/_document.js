@@ -5,7 +5,7 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          <script src="https://telegram.org/js/telegram-web-app.js" />
+          <script src="https://telegram.org/js/telegram-web-app.js" async />
           {/* Other head elements */}
         </Head>
         <body>
