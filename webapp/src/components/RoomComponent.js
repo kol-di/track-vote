@@ -39,17 +39,19 @@ const RoomComponent = ({ roomData }) => {
                 <h1 className={styles.roomName}>{roomData.roomName}</h1>
             </div>
             <div className={styles.subLayer}>
-                <input
-                    type="text"
-                    placeholder="Search tracks..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className={`${styles.searchInput} ${styles.stickySearch}`}
-                    onFocus={() => setSearchActive(true)}
-                    onBlur={() => setSearchActive(false)}
-                    style={{ backgroundColor: searchActive ? '#fff' : '#eee' }}
-                />
-                {isLoading && <div className={styles.loadingSpinner}>Loading...</div>}
+                <div className={styles.searchInputContainer}>
+                    <input
+                        type="text"
+                        placeholder="Search tracks..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        className={`${styles.searchInput} ${styles.stickySearch}`}
+                        onFocus={() => setSearchActive(true)}
+                        onBlur={() => setSearchActive(false)}
+                        style={{ backgroundColor: searchActive ? '#fff' : '#eee' }}
+                    />
+                    {isLoading && <div className={styles.loadingSpinner}></div>}
+                </div>
                 <div className={styles.trackListContainer}>
                     {searchResults.length > 0 && (
                         <ul className={styles.trackList}>

@@ -30,19 +30,50 @@
     flex-direction: column;
 }
 
+.searchInputContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%; 
+}
+
 .searchInput {
-    box-sizing: border-box;  /* Include padding and border in the element's width */
+    box-sizing: border-box;
+    flex-grow: 1;
     padding: 8px;
-    width: calc(100% - 20px);  /* Adjust width to account for padding of subLayer */
-    margin: 0 10px;  /* Uniform margin for left and right */
-    border: 2px solid #ccc;  /* Initial border color */
+    padding-right: 30px; /* Make room for the spinner without overlapping text */
+    width: 100%; 
+    margin: 0;
+    border: 2px solid #ccc;
     border-radius: 4px;
-    background-color: #eee;  /* Greyed out by default */
+    background-color: #eee;
+    height: 36px;
 }
 
 .searchInput:focus {
-    border-color: #0088cc;  /* Blue border on focus */
+    border-color: #0088cc;
 }
+
+.loadingSpinner {
+    position: absolute;
+    right: 0px;  
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0,0,0,.1);
+    border-radius: 50%;
+    border-top-color: #666;
+    animation: spin 1s infinite linear;
+    margin-right: 10px; 
+    z-index: 100;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 
 .trackListContainer {
     flex: 1;
@@ -66,14 +97,8 @@
 .stickySearch {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 50;
     background-color: #f7f7f7;  /* Ensures the sticky search matches the sublayer background */
-}
-
-.loadingSpinner {
-    text-align: center;
-    padding: 10px;
-    color: #ccc;
 }
 
 .albumImage {
