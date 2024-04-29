@@ -27,7 +27,13 @@ async function fetchData(url, headers) {
         if (!response.ok) {
             throw new Error(`HTTP status ${response.status}`);
         }
-        return await response.json();
+        const text = await response.text();  // First get response as text to check if it's empty
+        try {
+            return JSON.parse(text);  // Then parse it as JSON
+        } catch (e) {
+            console.error('Failed to parse JSON:', e);
+            throw new Error('Invalid JSON response');
+        }
     } catch (error) {
         console.error('Failed to fetch data:', error);
         throw error;
