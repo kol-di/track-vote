@@ -12,24 +12,44 @@ let accessToken, refreshToken;
 const spotifyAuth = express();
 
 const refreshAccessToken = async () => {
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Basic ' + (Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')),
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            refresh_token: refreshToken
-        })
-    });
-    const data = await response.json();
-    accessToken = data.access_token;
-    refreshToken = data.refresh_token; // Update refresh token if a new one is provided
+  if (!refreshToken) {
+      console.error('No refresh token available.');
+      return; // Early exit if there's no refresh token
+  }
 
-    console.log('Access Token Refreshed:', accessToken);
-    setTimeout(refreshAccessToken, (data.expires_in - 300) * 1000); // Refresh 5 minutes before expiry
+  try {
+      const response = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+              'Authorization': 'Basic ' + (Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')),
+              'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+              grant_type: 'refresh_token',
+              refresh_token: refreshToken
+          })
+      });
+
+      if (!response.ok) {
+          throw new Error(`Failed to refresh access token: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.access_token) {
+          accessToken = data.access_token;
+          console.log('Access Token Refreshed:', accessToken);
+          if (data.refresh_token) {
+              refreshToken = data.refresh_token; // Update refresh token if a new one is provided
+          }
+          setTimeout(refreshAccessToken, (data.expires_in - 300) * 1000); // Refresh 5 minutes before expiry
+      } else {
+          throw new Error('Invalid token data received from Spotify');
+      }
+  } catch (error) {
+      console.error('Error refreshing the Spotify token:', error.message);
+  }
 };
+
 
 spotifyAuth.get('/login', (req, res) => {
   const scope = 'user-read-private user-read-email';
