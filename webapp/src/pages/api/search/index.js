@@ -1,8 +1,7 @@
 import fetch from 'node-fetch';
-// import LRU from 'lru-cache';
-const LRU = require('lru-cache').LRUCache;
+const { LRUCache } = require('lru-cache');
 
-const cache = new LRU({
+const cache = new LRUCache({
     maxAge: 1000 * 60 * 15, // 15 minutes
     max: 100 // Maximum 100 items
 });
@@ -14,6 +13,25 @@ async function fetchAccessToken() {
     }
     const data = await response.json();
     return data.accessToken;
+}
+
+async function fetchData(url, headers) {
+    try {
+        const response = await fetch(url, { headers });
+        if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After') || 1; // Get the retry after value in seconds
+            console.warn(`Rate limit exceeded, retrying after ${retryAfter} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, retryAfter * 1000)); // Sleep for retryAfter seconds
+            return fetchData(url, headers); // Retry the request
+        }
+        if (!response.ok) {
+            throw new Error(`HTTP status ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Failed to fetch data:', error);
+        throw error;
+    }
 }
 
 export default async function handler(req, res) {
@@ -28,14 +46,14 @@ export default async function handler(req, res) {
         const url = `https://api.spotify.com/v1/search?type=track&q=${encodeURIComponent(query)}`;
         const headers = { 'Authorization': `Bearer ${accessToken}` };
 
-        const spotifyRes = await fetch(url, { headers });
-        const data = await spotifyRes.json();
-
-        // Cache the response
+        const data = await fetchData(url, headers);
         cache.set(query, data);
         res.status(200).json(data);
     } catch (error) {
-        console.error('Error searching Spotify:', error);
-        res.status(500).json({ message: 'Failed to fetch data from Spotify', error: error.message });
+        if (error.message.includes('429')) {
+            res.status(429).json({ message: 'Rate limit exceeded, please try again later' });
+        } else {
+            res.status(500).json({ message: 'Failed to fetch data from Spotify', error: error.message });
+        }
     }
 }
