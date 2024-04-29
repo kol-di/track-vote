@@ -6,7 +6,7 @@
     "dev": "node server/server.js",
     "next-dev": "next dev",
     "build": "next build",
-    "start": "NODE_ENV=production node server/server.js",
+    "start": "npx cross-env NODE_ENV=production node server/server.js",
     "lint": "next lint",
     "ngrok": "ngrok http --host-header=rewrite 3000",
     "lt": "npx localtunnel --port 3000"
