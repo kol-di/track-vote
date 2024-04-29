@@ -82,3 +82,47 @@
     object-fit: cover;  /* Ensure the image covers the area without distorting aspect ratio */
     margin-right: 10px;  /* Add some spacing between the image and text */
 }
+
+/* Existing styles... */
+
+.trackItem {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.albumImage {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 10px;
+    border-radius: 4px; /* Rounded corners for the image */
+}
+
+.trackInfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0; /* Prevents flex items from growing past their content */
+}
+
+.artistName {
+    font-weight: bold;
+    color: black;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ellipsis for overflowing text */
+}
+
+.trackName {
+    color: grey;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ellipsis for overflowing text */
+}
