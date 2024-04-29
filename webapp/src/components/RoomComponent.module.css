@@ -74,12 +74,6 @@
     to { transform: rotate(360deg); }
 }
 
-
-.trackListContainer {
-    flex: 1;
-    overflow-y: auto;
-}
-
 .adminList, .trackList {
     list-style: none;
     padding: 0;
@@ -113,12 +107,12 @@
 .trackItem {
     display: flex;
     align-items: center;
-    background-color: #fff;
-    border: 1px solid #ddd;
     padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 8px;
-    overflow: hidden;
+    border-bottom: 1px solid #ddd; /* Adds a line separator */
+}
+
+.trackItem:last-child {
+    border-bottom: none; /* Removes the separator from the last item */
 }
 
 .albumImage {
@@ -151,3 +145,18 @@
     overflow: hidden;
     text-overflow: ellipsis; /* Ellipsis for overflowing text */
 }
+
+.resultsContainer {
+    max-height: 66vh; /* 2/3 of the viewport height */
+    overflow-y: auto; /* Makes the container independently scrollable */
+    background: white;
+    border-top: 1px solid #ccc;
+    border-radius: 8px; /* Adding rounded corners */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);  /* Optional: adds subtle shadow for depth */
+    padding: 0 10px; /* Padding inside container to prevent lines touching the edges */
+}
+
+.trackList {
+    padding: 0;
+}
+

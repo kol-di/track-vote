@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import debounce from 'lodash/debounce';
 import styles from './RoomComponent.module.css';
 
@@ -7,18 +7,19 @@ const RoomComponent = ({ roomData }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const subLayerRef = useRef(null);
 
     const fetchSearchResults = async (query) => {
         setIsLoading(true);
         const response = await fetch(`/api/search?query=${query}`);
-        const data = await response.json();
-        setIsLoading(false);
         if (response.ok) {
+            const data = await response.json();
             setSearchResults(data.tracks.items);
         } else {
             console.error('Failed to fetch search results:', data.error);
             setSearchResults([]);
         }
+        setIsLoading(false);
     };
 
     const debouncedSearch = useCallback(debounce(fetchSearchResults, 300), []);
@@ -33,12 +34,39 @@ const RoomComponent = ({ roomData }) => {
         }
     };
 
+    const handleFocus = () => {
+        setSearchActive(true);
+        // Scroll to make the subLayer top align with the top of the viewport
+        if (subLayerRef.current) {
+            window.scrollTo({
+                top: subLayerRef.current.offsetTop,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    const handleClickOutside = (event) => {
+        if (subLayerRef.current && !subLayerRef.current.contains(event.target)) {
+            setSearchActive(false);
+            setSearchTerm('');
+            setSearchResults([]);
+        }
+    };
+
+    // Add event listener to handle clicks outside of the subLayer
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
         <div className={styles.container}>
             <div className={styles.roomNameContainer}>
                 <h1 className={styles.roomName}>{roomData.roomName}</h1>
             </div>
-            <div className={styles.subLayer}>
+            <div className={styles.subLayer} ref={subLayerRef}>
                 <div className={styles.searchInputContainer}>
                     <input
                         type="text"
@@ -46,14 +74,14 @@ const RoomComponent = ({ roomData }) => {
                         value={searchTerm}
                         onChange={handleSearchChange}
                         className={`${styles.searchInput} ${styles.stickySearch}`}
-                        onFocus={() => setSearchActive(true)}
+                        onFocus={handleFocus}
                         onBlur={() => setSearchActive(false)}
                         style={{ backgroundColor: searchActive ? '#fff' : '#eee' }}
                     />
                     {isLoading && <div className={styles.loadingSpinner}></div>}
                 </div>
-                <div className={styles.trackListContainer}>
-                    {searchResults.length > 0 && (
+                {searchActive && searchResults.length > 0 && (
+                    <div className={styles.resultsContainer}>
                         <ul className={styles.trackList}>
                             {searchResults.map((track, index) => (
                                 <li key={index} className={styles.trackItem}>
@@ -65,8 +93,8 @@ const RoomComponent = ({ roomData }) => {
                                 </li>
                             ))}
                         </ul>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );
