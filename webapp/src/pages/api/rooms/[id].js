@@ -6,6 +6,7 @@ import Track from '../../../models/Track'; // Ensure this path is correct
 export default async function handler(req, res) {
   await connectDB();
   const { id } = req.query;
+  console.log('Looking for room:', id);
 
   console.log('PIZDEC');
   if (req.method === 'GET') {
@@ -24,6 +25,7 @@ export default async function handler(req, res) {
         });
 
       if (!room) {
+        console.error('Cant find room with id:', id);
         return res.status(404).json({ message: 'Room not found' });
       }
 

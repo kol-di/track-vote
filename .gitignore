@@ -167,3 +167,6 @@ pids
 
 # configs
 *.ini
+
+# nodejs
+node_modules/
