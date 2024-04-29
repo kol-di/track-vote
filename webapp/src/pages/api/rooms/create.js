@@ -30,7 +30,7 @@ export default async function handler(req, res) {
             await room.save();
 
             // Define base URL manually or via environment variables
-            const baseURL = process.env.WEB_APP_BASE_URL;  // Example: 'https://myapp.com'
+            const baseURL = process.env.NEXT_PUBLIC_WEB_APP_BASE_URL;  // Example: 'https://myapp.com'
             const roomLink = `${baseURL}/rooms/${room._id}`;
 
             res.status(201).json({ roomLink, message: 'Room created successfully.' });

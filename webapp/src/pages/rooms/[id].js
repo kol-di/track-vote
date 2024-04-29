@@ -1,8 +1,9 @@
 import RoomComponent from '../../components/RoomComponent';
 
 export async function getServerSideProps(context) {
+    console.log('FETCHING THE PAGE');
     const { id } = context.params;
-    const baseUrl = process.env.WEB_APP_BASE_URL;
+    const baseUrl = process.env.NEXT_PUBLIC_WEB_APP_BASE_URL;
     try {
         const res = await fetch(`${baseUrl}/api/rooms/${id}`); // Adjust the URL if necessary
         if (!res.ok) {

@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       }
 
       const room = await Room.findById(id)
-        .populate('admins', 'telegramId') // Populating admins, assuming 'name' is a field in the User model
+        .populate('admins', 'telegramId') // Populating admins, assuming 'telegramId' is a field in the User model
         .populate({
           path: 'tracks',
           select: 'votes spotifyId', // Selecting fields to return for tracks
