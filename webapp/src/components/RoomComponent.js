@@ -7,11 +7,14 @@ const RoomComponent = ({ roomData }) => {
     const [searchActive, setSearchActive] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);  // State to track loading
 
     // Function to fetch search results
     const fetchSearchResults = async (query) => {
+        setIsLoading(true);  // Set loading true when search starts
         const response = await fetch(`/api/search?query=${query}`);
         const data = await response.json();
+        setIsLoading(false);  // Set loading false when fetching completes
         if (response.ok) {
             setSearchResults(data.tracks.items);  // Assuming 'tracks.items' is the structure returned by Spotify
         } else {
@@ -58,11 +61,13 @@ const RoomComponent = ({ roomData }) => {
                     onBlur={handleSearchBlur}
                     style={{ backgroundColor: searchActive ? '#fff' : '#eee' }}
                 />
+                {isLoading && <div className={styles.loadingSpinner}>Loading...</div>}
                 <div className={styles.trackListContainer}>
                     {searchResults.length > 0 && (
                         <ul className={styles.trackList}>
                             {searchResults.map((track, index) => (
                                 <li key={index} className={styles.track}>
+                                    <img src={track.album.images.slice(-1)[0].url} alt="Album Cover" className={styles.albumImage} />
                                     {track.name} - {track.artists.map(artist => artist.name).join(', ')}
                                 </li>
                             ))}
