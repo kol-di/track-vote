@@ -27,7 +27,7 @@ const RoomComponent = ({ roomData }) => {
     const debouncedSearch = useCallback(debounce(fetchSearchResults, 300), []);
 
     const addTrackToTopChart = async (track) => {
-        if (topChart.find(t => t.spotifyId === track.id)) return; // Avoid duplicates
+        if (topChart.find(t => t.id === track.id)) return; // Avoid duplicates
         setTopChart([...topChart, { ...track, votes: 1 }]); // Add track with a default vote
         // Optionally send this update back to the server here
     };
