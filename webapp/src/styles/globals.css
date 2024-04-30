@@ -4,16 +4,12 @@
 html, body {
     margin: 0;
     padding: 0;
+    height: 100%; /* Change this to 100% to allow natural document flow */
+    overflow-y: auto; /* Maintain this to allow vertical scrolling */
 }
 
-/* Sets the height of the body to 100% of the viewport height */
-body {
-    height: 100vh; /* Viewport height ensures the body takes up at least the full height of the screen */
-    overflow-y: auto; /* Allows vertical scrolling if content exceeds the viewport height */
-}
-
-/* Ensures that #__next (the root container by Next.js) also takes the full height */
+/* Ensures that #__next (the root container by Next.js) takes the full available height */
 #__next {
-    height: 100%;
-    overflow: hidden; /* Typically, you want #__next to not independently scroll */
+    height: auto; /* Change this to auto to allow #__next to grow with content */
+    overflow: visible; /* Change to visible to allow any overflow to be visible */
 }

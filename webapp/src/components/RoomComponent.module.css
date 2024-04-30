@@ -4,9 +4,11 @@
     color: #333;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh; /* Ensures it covers at least the full viewport height */
+    height: auto; /* Allows the container to grow as needed */
     padding: 10px;
-    background-color: #e9ecef;  /* Outer layer background */
+    background-color: #e9ecef; /* Outer layer background */
+    overflow: auto; /* Allows scrolling when content exceeds the viewport */
 }
 
 .roomNameContainer {
@@ -147,14 +149,21 @@
 }
 
 .resultsContainer {
-    max-height: 66vh; /* 2/3 of the viewport height */
-    overflow-y: auto; /* Makes the container independently scrollable */
+    position: absolute; /* Position absolutely within the subLayer */
+    top: 100%; /* Directly below the search input */
+    left: 0; /* Align left edge with the container */
+    right: 0; /* Align right edge with the container */
+    width: calc(100% - 20px); /* Adjust the width to account for padding */
+    max-height: 66vh; /* 2/3 of the viewport height, adjust as necessary */
+    overflow-y: auto;
     background: white;
     border-top: 1px solid #ccc;
-    border-radius: 8px; /* Adding rounded corners */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);  /* Optional: adds subtle shadow for depth */
+    border-radius: 8px;
     padding: 0 10px; /* Padding inside container to prevent lines touching the edges */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 15; /* Higher than topChart but lower than sticky search */
 }
+
 
 .trackList {
     padding: 0;
@@ -163,4 +172,13 @@
 .searchContainer {
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 0;  /* Makes search input sticky at the top */
+    z-index: 20; /* Ensure this is above other content */
+    background: inherit;
+}
+
+.topChartContainer {
+    margin-top: 10px; /* Space below search container */
+    z-index: 5; /* Lower than searchContainer */
 }

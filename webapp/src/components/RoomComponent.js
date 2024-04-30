@@ -7,6 +7,7 @@ const RoomComponent = ({ roomData }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [topChart, setTopChart] = useState(roomData.tracks || []);  // Initialize with existing tracks
     const searchContainerRef = useRef(null);
 
     const fetchSearchResults = async (query) => {
@@ -23,6 +24,12 @@ const RoomComponent = ({ roomData }) => {
     };
 
     const debouncedSearch = useCallback(debounce(fetchSearchResults, 300), []);
+
+    const addTrackToTopChart = async (track) => {
+        if (topChart.find(t => t.spotifyId === track.id)) return; // Avoid duplicates
+        setTopChart([...topChart, { ...track, votes: 1 }]); // Add track with a default vote
+        // Optionally send this update back to the server here
+    };
 
     const handleSearchChange = (event) => {
         const query = event.target.value;
@@ -86,7 +93,7 @@ const RoomComponent = ({ roomData }) => {
                         <div className={styles.resultsContainer}>
                             <ul className={styles.trackList}>
                                 {searchResults.map((track, index) => (
-                                    <li key={index} className={styles.trackItem}>
+                                    <li key={index} className={styles.trackItem} onClick={() => addTrackToTopChart(track)}>
                                         <img src={track.album.images.slice(-1)[0].url} alt="Album Cover" className={styles.albumImage} />
                                         <div className={styles.trackInfo}>
                                             <div className={styles.artistName}>{track.artists.map(artist => artist.name).join(', ')}</div>
@@ -98,6 +105,21 @@ const RoomComponent = ({ roomData }) => {
                         </div>
                     )}
                 </div>
+                {topChart.length > 0 && (
+                    <div className={styles.topChartContainer}>
+                        <ul className={styles.trackList}>
+                            {topChart.map((track, index) => (
+                                <li key={index} className={styles.trackItem}>
+                                    <img src={track.album.images.slice(-1)[0].url} alt="Album Cover" className={styles.albumImage} />
+                                    <div className={styles.trackInfo}>
+                                        <div className={styles.artistName}>{track.artists.map(artist => artist.name).join(', ')}</div>
+                                        <div className={styles.trackName}>{track.name}</div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );
