@@ -1,15 +1,12 @@
-/* styles/globals.css */
-
-/* Resets padding and margin to remove browser inconsistencies */
+/* globals.css */
 html, body {
+    height: auto;  
     margin: 0;
     padding: 0;
-    height: 100%; /* Change this to 100% to allow natural document flow */
-    overflow-y: auto; /* Maintain this to allow vertical scrolling */
+    overflow-y: auto;  
 }
 
-/* Ensures that #__next (the root container by Next.js) takes the full available height */
 #__next {
-    height: auto; /* Change this to auto to allow #__next to grow with content */
-    overflow: visible; /* Change to visible to allow any overflow to be visible */
+    height: 100%;  
+    overflow: auto;  
 }
