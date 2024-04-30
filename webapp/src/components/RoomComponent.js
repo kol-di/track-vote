@@ -8,6 +8,7 @@ const RoomComponent = ({ roomData }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [topChart, setTopChart] = useState(roomData.tracks || []);  // Initialize with existing tracks
+    const searchInputRef = useRef(null);
     const searchContainerRef = useRef(null);
 
     const fetchSearchResults = async (query) => {
@@ -55,6 +56,22 @@ const RoomComponent = ({ roomData }) => {
         }
     };
 
+    useEffect(() => {
+        const handleTouchMove = () => {
+            // Always blur the input field on touch move
+            if (searchInputRef.current) {
+                searchInputRef.current.blur();
+            }
+        };
+    
+        const container = document; // Listen on a broader scope, e.g., the whole document
+        container.addEventListener('touchmove', handleTouchMove);
+    
+        return () => {
+            container.removeEventListener('touchmove', handleTouchMove);
+        };
+    }, []);
+
     const handleClickOutside = (event) => {
         if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
             setSearchActive(false);
@@ -83,8 +100,9 @@ const RoomComponent = ({ roomData }) => {
                             placeholder="Search tracks..."
                             value={searchTerm}
                             onChange={handleSearchChange}
-                            className={`${styles.searchInput} ${styles.stickySearch}`}
+                            className={`${styles.searchInput}`}
                             onFocus={handleFocus}
+                            ref={searchInputRef}
                             style={{ backgroundColor: searchActive ? '#fff' : '#eee' }}
                         />
                         {isLoading && <div className={styles.loadingSpinner}></div>}
