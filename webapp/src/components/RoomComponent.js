@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import debounce from 'lodash/debounce';
 import styles from './RoomComponent.module.css';
+import { trackSchema } from '../schemas/roomSchemas.js';
+
 
 const RoomComponent = ({ roomData, socket }) => {
     const [searchActive, setSearchActive] = useState(false);
@@ -26,36 +28,42 @@ const RoomComponent = ({ roomData, socket }) => {
 
     const debouncedSearch = useCallback(debounce(fetchSearchResults, 300), []);
 
-    const updateTopChart = (trackFromSpotify) => {
-        // Prepare track data in the needed format
+    const updateTopChart = async (trackFromSpotify) => {
+        // Check if the track already exists in the current state
+        const existingTrack = topChart.find(t => t.spotifyId === trackFromSpotify.id);
+    
+        // Prepare the track data in the needed format
         const track = {
             spotifyId: trackFromSpotify.id,
-            name: trackFromSpotify.name,
-            artists: trackFromSpotify.artists.map(artist => artist.name),
-            albumCoverUrl: trackFromSpotify.album.images[0].url,
-            votes: trackFromSpotify.votes || 1
+            votes: existingTrack ? existingTrack.votes + 1 : 1, // Increment votes if exists, otherwise start with 1
+            isNew: !existingTrack // isNew flag for conditional validation
         };
     
-        // Find the track in the current state to check if it exists
-        const existingTrack = topChart.find(t => t.spotifyId === track.spotifyId);
-        
-        // If the track exists and we're supposed to add a vote
-        if (existingTrack) {
-            const updatedTrack = {
-                ...existingTrack,
-                votes: existingTrack.votes + 1 // Increment vote count
-            };
-            // Optimistically update the UI
-            setTopChart(prev => [...prev.filter(t => t.spotifyId !== track.spotifyId), updatedTrack]);
-            // Emit the update to the server with the current vote count
-            socket.emit('updateTopChart', { roomId: roomData.id, track: { spotifyId: track.spotifyId, votes: updatedTrack.votes } });
-        } else {
-            // If the track does not exist in the local state, add it optimistically
-            setTopChart(prev => [...prev, track]);
-            // Emit the new track data to the server
-            socket.emit('updateTopChart', { roomId: roomData.id, track });
+        // Include additional details if the track is new
+        if (!existingTrack) {
+            track.name = trackFromSpotify.name;
+            track.artists = trackFromSpotify.artists.map(artist => artist.name);
+            track.albumCoverUrl = trackFromSpotify.album.images[0].url;
+        }
+    
+        try {
+            // Validate the track data against the schema
+            const validTrack = await trackSchema.validate(track);
+    
+            // Update local state and emit changes
+            if (existingTrack) {
+                const updatedTrack = { ...existingTrack, votes: validTrack.votes };
+                setTopChart(prev => [...prev.filter(t => t.spotifyId !== track.spotifyId), updatedTrack]);
+                socket.emit('updateTopChart', { roomId: roomData.id, track: { spotifyId: track.spotifyId, votes: updatedTrack.votes } });
+            } else {
+                setTopChart(prev => [...prev, validTrack]);
+                socket.emit('updateTopChart', { roomId: roomData.id, track: validTrack });
+            }
+        } catch (error) {
+            console.error('Validation error:', error);
         }
     };
+    
     
 
     useEffect(() => {
