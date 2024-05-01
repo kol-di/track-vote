@@ -46,37 +46,43 @@ app.prepare().then(() => {
     socket.on('updateTopChart', async ({ roomId, track }) => {
       try {
           console.log(`Updating top chart in room ${roomId} with track ${track.spotifyId}`);
+  
+          // Check if the track exists and update the votes or decrement them based on the input
           const updateResult = await Room.findOneAndUpdate(
               { _id: roomId, "tracks.spotifyId": track.spotifyId },
               { $inc: { "tracks.$.votes": track.votes > 0 ? 1 : -1 } },
               { new: true }
           );
-
-          if (!updateResult) {
+  
+          if (updateResult) {
+              // If update was successful and votes are not zero, emit only spotifyId and updated votes
+              if (track.votes !== 0) {
+                  const updatedTrack = updateResult.tracks.find(t => t.spotifyId === track.spotifyId);
+                  socket.to(roomId).emit('topChartUpdated', { spotifyId: updatedTrack.spotifyId, votes: updatedTrack.votes });
+              } else {
+                  // If votes reach zero, remove the track and inform clients
+                  await Room.updateOne(
+                      { _id: roomId },
+                      { $pull: { tracks: { spotifyId: track.spotifyId } } }
+                  );
+                  socket.to(roomId).emit('topChartUpdated', { spotifyId: track.spotifyId, votes: 0 });
+              }
+          } else {
               // If the track does not exist and votes > 0, add it
               if (track.votes > 0) {
                   await Room.updateOne(
                       { _id: roomId },
                       { $push: { tracks: track } }
                   );
+                  // Emit the full track data as it's newly added
+                  socket.to(roomId).emit('topChartUpdated', track);
               }
-          } else if (track.votes === 0) {
-              // Remove track if votes are zero
-              await Room.updateOne(
-                  { _id: roomId },
-                  { $pull: { tracks: { spotifyId: track.spotifyId } } }
-              );
           }
-
-          const roomWithUpdatedTracks = await Room.findById(roomId).select('tracks');
-          const updatedTrackData = roomWithUpdatedTracks.tracks.find(t => t.spotifyId === track.spotifyId) || track;
-          socket.to(roomId).emit('topChartUpdated', updatedTrackData);
-
       } catch (error) {
           console.error('Error updating top chart:', error);
           socket.emit('error', 'Failed to update top chart');
       }
-  });
+  });  
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
