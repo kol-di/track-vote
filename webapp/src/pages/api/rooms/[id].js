@@ -1,7 +1,6 @@
 import connectDB from '../../../db/mongoose'; // Adjust the path as necessary
 import Room from '../../../models/Room'; // Ensure this path is correct
 import User from '../../../models/User'; // Ensure you have this model and it's correct
-import Track from '../../../models/Track'; // Ensure this path is correct
 
 export default async function handler(req, res) {
   await connectDB();
@@ -30,6 +29,7 @@ export default async function handler(req, res) {
       }
 
       res.status(200).json({
+        id: room._id,
         roomName: room.name,
         admins: room.admins.map(admin => admin.telegramId), // Mapping over admins to return names
         tracks: room.tracks.map(track => ({

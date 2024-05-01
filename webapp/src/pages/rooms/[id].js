@@ -1,27 +1,48 @@
 import RoomComponent from '../../components/RoomComponent';
+import { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 
 export async function getServerSideProps(context) {
-    console.log('FETCHING THE PAGE');
     const { id } = context.params;
-    const baseUrl = process.env.NEXT_PUBLIC_WEB_APP_BASE_URL;
-    try {
-        const res = await fetch(`${baseUrl}/api/rooms/${id}`); // Adjust the URL if necessary
-        if (!res.ok) {
-            throw new Error('Failed to fetch');
-        }
-        const data = await res.json();
-        console.log('FETCH SUCCESS');
-        return { props: { roomData: data } };
-    } catch (error) {
-        // Handle errors, possibly return an error page or notFound: true
+    const baseUrl = process.env.BASE_URL;
+    const res = await fetch(`${baseUrl}/api/rooms/${id}`);
+    if (!res.ok) {
         return { props: { roomData: null } };
     }
+    const data = await res.json();
+    return { props: { roomData: data } };
 }
 
 const RoomPage = ({ roomData }) => {
-    console.log('BOUT TO RENDER');
+    const [socket, setSocket] = useState(null);
+
+    useEffect(() => {
+        if (!roomData) return;
+    
+        const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_IO_URL, {
+            query: { roomId: roomData.id }, 
+            transports : ["websocket"]
+        });
+    
+        newSocket.on('connect', () => {
+            console.log('Connected to Socket.IO');
+            newSocket.emit('joinRoom', roomData.id); // Join the room
+        });
+
+        newSocket.on('connect_error', (err) => {
+            console.log('Error connecting to Socket.IO:', err);
+          });
+    
+        setSocket(newSocket);
+    
+        return () => {
+            newSocket.close();
+            console.log('Disconnected Socket.IO');
+        };
+    }, [roomData]);
+
     if (!roomData) return <p>Room not found.</p>;
-    return <RoomComponent roomData={roomData} />;
+    return <RoomComponent roomData={roomData} socket={socket} />;
 }
 
 export default RoomPage;

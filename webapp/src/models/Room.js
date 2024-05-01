@@ -1,9 +1,16 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const roomSchema = new mongoose.Schema({
   name: { type: String, required: true },
   admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  tracks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Track' }]
+  tracks: [{
+    spotifyId: { type: String, required: true },
+    name: { type: String, required: true },
+    artists: [{ type: String }], // Assuming multiple artists could be involved
+    albumCoverUrl: { type: String },
+    votes: { type: Number, default: 0 }
+  }]
 });
 
-export default mongoose.models.Room || mongoose.model('Room', roomSchema);
+const Room = mongoose.models.Room || mongoose.model('Room', roomSchema);
+module.exports = Room;
