@@ -19,7 +19,7 @@ const RoomPage = ({ roomData }) => {
     useEffect(() => {
         if (!roomData) return;
     
-        const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_IO_URL, {
+        const newSocket = io(process.env.NEXT_PUBLIC_WEB_APP_BASE_URL, {
             query: { roomId: roomData.id }, 
             transports : ["websocket"]
         });

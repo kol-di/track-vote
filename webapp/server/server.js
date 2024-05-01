@@ -27,7 +27,7 @@ app.prepare().then(() => {
   const io = socketIo(httpServer, {
     transports: ['websocket'],
     cors: {
-      origin: process.env.NEXT_PUBLIC_SOCKET_IO_URL, // Use the environment variable
+      origin: process.env.NEXT_PUBLIC_WEB_APP_BASE_URL, // Use the environment variable
       methods: ["GET", "POST"],
       allowedHeaders: ["Content-Type"],
       credentials: true
