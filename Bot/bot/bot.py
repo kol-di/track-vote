@@ -20,7 +20,7 @@ async def create_new_room(event):
     print('Create new room')
     sender = await event.get_sender()
     print(sender.id)
-    room_link = webappapi.new_room(sender.id, 'best_room')
+    room_link = webappapi.new_room(sender.id, 'room_uebanov')
     print(room_link)
     room_link_btn = types.KeyboardButtonWebView("Room", room_link)
     await event.respond("Here's your room link:", buttons=[room_link_btn])
