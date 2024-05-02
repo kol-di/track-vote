@@ -14,12 +14,20 @@ const RoomComponent = ({ roomData, socket }) => {
     const searchInputRef = useRef(null);
     const searchContainerRef = useRef(null);
 
+
     const fetchSearchResults = async (query) => {
         setIsLoading(true);
         const response = await fetch(`/api/search?query=${query}`);
         if (response.ok) {
             const data = await response.json();
-            setSearchResults(data.tracks.items);
+            const enhancedTracks = data.tracks.items.map(track => {
+                const existingTrack = topChart.find(t => t.spotifyId === track.id);
+                return {
+                    ...track,
+                    votes: existingTrack ? existingTrack.votes : 0
+                };
+            });
+            setSearchResults(enhancedTracks);
         } else {
             console.error('Failed to fetch search results:', response.status);
             setSearchResults([]);
@@ -27,8 +35,8 @@ const RoomComponent = ({ roomData, socket }) => {
         setIsLoading(false);
     };
 
-    const debouncedSearch = useCallback(debounce(fetchSearchResults, 300), []);
-
+    const debouncedSearch = debounce(query => fetchSearchResults(query), 300);
+    
     const updateTopChart = async (trackFromSpotify) => {
         // Clear search results once a track is clicked
         setSearchResults([]);
@@ -187,6 +195,9 @@ const RoomComponent = ({ roomData, socket }) => {
                                             <div className={styles.artistName}>{track.artists.map(artist => artist.name).join(', ')}</div>
                                             <div className={styles.trackName}>{track.name}</div>
                                         </div>
+                                        {track.votes > 0 && (
+                                            <div className={styles.voteCount}>{track.votes}</div>
+                                        )}
                                     </li>
                                 ))}
                             </ul>
@@ -202,6 +213,9 @@ const RoomComponent = ({ roomData, socket }) => {
                                     <div className={styles.trackInfo}>
                                         <div className={styles.artistName}>{track.artists.join(', ')}</div>
                                         <div className={styles.trackName}>{track.name}</div>
+                                    </div>
+                                    <div className={styles.voteCount}>
+                                        {track.votes} {/* Display the vote count */}
                                     </div>
                                 </li>
                             ))}
