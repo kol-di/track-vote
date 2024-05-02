@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import debounce from 'lodash/debounce';
 import styles from './RoomComponent.module.css';
 import { trackSchema } from '../schemas/roomSchemas.js';
+import Image from 'next/image';
 
 
 const RoomComponent = ({ roomData, socket }) => {
@@ -29,6 +30,9 @@ const RoomComponent = ({ roomData, socket }) => {
     const debouncedSearch = useCallback(debounce(fetchSearchResults, 300), []);
 
     const updateTopChart = async (trackFromSpotify) => {
+        // Clear search results once a track is clicked
+        setSearchResults([]);
+
         // Check if the track already exists in the current state
         const existingTrack = topChart.find(t => t.spotifyId === trackFromSpotify.id);
     
@@ -65,29 +69,22 @@ const RoomComponent = ({ roomData, socket }) => {
     };
     
     
-
     useEffect(() => {
         if (socket) {
-            socket.on('topChartUpdated', (trackUpdate) => {
+            const handleTopChartUpdate = trackUpdate => {
+                console.log('Handling topChart update for:', trackUpdate.spotifyId);
                 setTopChart(prevTopChart => {
-                    const existingTrackIndex = prevTopChart.findIndex(t => t.spotifyId === trackUpdate.spotifyId);
+                    const trackIndex = prevTopChart.findIndex(t => t.spotifyId === trackUpdate.spotifyId);
     
-                    if (existingTrackIndex !== -1) {
-                        // Track already exists in the top chart
+                    if (trackIndex !== -1) {
                         if (trackUpdate.votes === 0) {
-                            // If votes are zero, remove the track
                             return prevTopChart.filter(t => t.spotifyId !== trackUpdate.spotifyId);
                         } else {
-                            // Update vote count
-                            const updatedTopChart = [...prevTopChart];
-                            updatedTopChart[existingTrackIndex] = {
-                                ...updatedTopChart[existingTrackIndex],
-                                votes: trackUpdate.votes
-                            };
-                            return updatedTopChart;
+                            return prevTopChart.map((item, index) => 
+                                index === trackIndex ? { ...item, votes: trackUpdate.votes } : item
+                            );
                         }
                     } else if (trackUpdate.votes > 0) {
-                        // Track does not exist and has votes greater than zero, add it
                         return [...prevTopChart, {
                             spotifyId: trackUpdate.spotifyId,
                             name: trackUpdate.name,
@@ -96,12 +93,12 @@ const RoomComponent = ({ roomData, socket }) => {
                             votes: trackUpdate.votes
                         }];
                     }
-    
-                    return prevTopChart; // Return the current state if no changes
+                    return prevTopChart;
                 });
-            });
+            };
     
-            return () => socket.off('topChartUpdated');
+            socket.on('topChartUpdated', handleTopChartUpdate);
+            return () => socket.off('topChartUpdated', handleTopChartUpdate);
         }
     }, [socket]);
 
@@ -185,7 +182,7 @@ const RoomComponent = ({ roomData, socket }) => {
                             <ul className={styles.trackList}>
                                 {searchResults.map((track, index) => (
                                     <li key={index} className={styles.trackItem} onClick={() => updateTopChart(track)}>
-                                        <img src={track.album.images.slice(-1)[0].url} alt="Album Cover" className={styles.albumImage} />
+                                        <Image src={track.album.images.slice(-1)[0].url} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
                                         <div className={styles.trackInfo}>
                                             <div className={styles.artistName}>{track.artists.map(artist => artist.name).join(', ')}</div>
                                             <div className={styles.trackName}>{track.name}</div>
@@ -201,7 +198,7 @@ const RoomComponent = ({ roomData, socket }) => {
                         <ul className={styles.trackList}>
                             {topChart.map((track) => (
                                 <li key={track.spotifyId} className={styles.trackItem}>
-                                    <img src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} />
+                                    <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
                                     <div className={styles.trackInfo}>
                                         <div className={styles.artistName}>{track.artists.join(', ')}</div>
                                         <div className={styles.trackName}>{track.name}</div>

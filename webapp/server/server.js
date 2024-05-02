@@ -58,6 +58,7 @@ app.prepare().then(() => {
               // If update was successful and votes are not zero, emit only spotifyId and updated votes
               if (track.votes !== 0) {
                   const updatedTrack = updateResult.tracks.find(t => t.spotifyId === track.spotifyId);
+                  console.log('emitting topChartUpdated');
                   socket.to(roomId).emit('topChartUpdated', { spotifyId: updatedTrack.spotifyId, votes: updatedTrack.votes });
               } else {
                   // If votes reach zero, remove the track and inform clients
@@ -65,6 +66,7 @@ app.prepare().then(() => {
                       { _id: roomId },
                       { $pull: { tracks: { spotifyId: track.spotifyId } } }
                   );
+                  console.log('emitting topChartUpdated');
                   socket.to(roomId).emit('topChartUpdated', { spotifyId: track.spotifyId, votes: 0 });
               }
           } else {
@@ -75,6 +77,7 @@ app.prepare().then(() => {
                       { $push: { tracks: track } }
                   );
                   // Emit the full track data as it's newly added
+                  console.log('emitting topChartUpdated');
                   socket.to(roomId).emit('topChartUpdated', track);
               }
           }

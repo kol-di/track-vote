@@ -2,6 +2,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,  // You can enable React's strict mode for catching potential issues in development
+
+    images: {
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'i.scdn.co',
+          port: '',
+          pathname: '/image/**',
+        },
+      ],
+    },
   
     // Async function to customize headers
     async headers() {
