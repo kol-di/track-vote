@@ -4,15 +4,21 @@ import * as yup from 'yup';
 export const trackSchema = yup.object({
   spotifyId: yup.string().required("Spotify ID is required"),
   votes: yup.number().min(0, "Votes cannot be negative").required("Votes are required"),
-  name: yup.string().when('$isNew', (isNew, schema) =>
-    isNew ? schema.required("Track name is required") : schema
-  ),
-  artists: yup.array().of(yup.string()).when('$isNew', (isNew, schema) =>
-    isNew ? schema.required("Artists are required") : schema
-  ),
-  albumCoverUrl: yup.string().url().when('$isNew', (isNew, schema) =>
-    isNew ? schema.required("Album cover URL is required") : schema
-  )
+  name: yup.string().when('$isNew', {
+    is: true,
+    then: () => yup.string().required("Track name is required"),
+    otherwise: () => yup.string().notRequired()
+  }),
+  artists: yup.array().of(yup.string()).when('$isNew', {
+    is: true,
+    then: () => yup.array().of(yup.string()).required("Artists are required"),
+    otherwise: () => yup.array().of(yup.string()).notRequired()
+  }),
+  albumCoverUrl: yup.string().url().when('$isNew', {
+    is: true,
+    then: () => yup.string().required("Album cover URL is required"),
+    otherwise: () => yup.string().notRequired()
+  })
 });
 
 

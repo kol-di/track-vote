@@ -36,7 +36,7 @@ const RoomComponent = ({ roomData, socket }) => {
     };
 
     const debouncedSearch = debounce(query => fetchSearchResults(query), 300);
-    
+
     const updateTopChart = async (trackFromSpotify) => {
         // Clear search results once a track is clicked
         setSearchResults([]);
@@ -50,17 +50,19 @@ const RoomComponent = ({ roomData, socket }) => {
             votes: existingTrack ? existingTrack.votes + 1 : 1, // Increment votes if exists, otherwise start with 1
             isNew: !existingTrack // isNew flag for conditional validation
         };
-    
+
         // Include additional details if the track is new
         if (!existingTrack) {
             track.name = trackFromSpotify.name;
             track.artists = trackFromSpotify.artists.map(artist => artist.name);
             track.albumCoverUrl = trackFromSpotify.album.images[0].url;
         }
-    
+        
         try {
             // Validate the track data against the schema
-            const validTrack = await trackSchema.validate(track);
+            const validTrack = await trackSchema.validate(track, {
+                context: { isNew: !existingTrack }
+            });
     
             // Update local state and emit changes
             if (existingTrack) {
