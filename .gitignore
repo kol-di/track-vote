@@ -170,3 +170,6 @@ pids
 
 # nodejs
 node_modules/
+
+# encryption
+*encryption_key.txt
