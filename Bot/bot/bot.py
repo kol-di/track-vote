@@ -107,7 +107,11 @@ async def start(event):
     else:
         if user_check['status'] == ApiStatus.SUCCESS:
             if not user_check['exists']:
-                await event.reply("Welcome to the bot! Explore by using the provided commands.")
+                response = webappapi.create_user(user_id)
+                if response['status'] == ApiStatus.SUCCESS:
+                    await event.reply("Welcome to the bot! Explore by using the provided commands.")
+                else:
+                    await event.reply("Ошибка при создании нового пользователя")
             else:
                 await event.reply("The bot is already started. Use the available commands to continue.")
         else:

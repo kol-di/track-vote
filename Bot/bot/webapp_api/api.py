@@ -69,3 +69,17 @@ class WebAppApi:
         except requests.exceptions.RequestException as e:
             print(f'Error adding user to room: {e}')
             return {"status": ApiStatus.ERROR, "message": 'Error adding user to room'}
+        
+    def create_user(self, telegram_id):
+        req_url = f'{self._base_url}/api/users/{telegram_id}/create'
+        print(f'Sending POST to {req_url}')
+        try:
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post(req_url, headers=headers)
+            response.raise_for_status()
+
+            data = response.json()
+            return {"status": ApiStatus.SUCCESS, "message": data.get('message', ''), "userId": data.get('userId')}
+        except requests.exceptions.RequestException as e:
+            print(f'Error creating user: {e}')
+            return {"status": ApiStatus.ERROR, "message": 'Error creating user'}
