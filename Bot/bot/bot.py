@@ -71,6 +71,8 @@ async def send_admin_room_buttons(event):
                 data=f"{ADMIN_ROOM_PREFIX}{room['id']}:a"
             ) for room in response['data']
         ]
+        buttons_in_row = 2
+        buttons = [buttons[i*buttons_in_row:(i+1)*buttons_in_row] for i in range(len(buttons) // 2 + 1)]
         await event.respond("Для какой комнаты сгенерировать админскую ссылку?", buttons=buttons)
 
 
