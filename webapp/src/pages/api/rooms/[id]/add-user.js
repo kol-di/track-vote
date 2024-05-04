@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         }
 
       // If user is not an admin but role is admin, promote them to admin
-      } else if (!isAdmin && role === 'admin') {
+      } else if (!isAdmin && role === 'a') {
         // Remove user from the `users` list if present
         if (isOrdinaryUser) {
           room.users = room.users.filter(uid => uid.toString() !== user._id.toString());
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
         }
 
       // If user is joining as an ordinary user and isn't an admin
-      } else if (!isAdmin && role !== 'admin') {
+      } else if (!isAdmin && role !== 'a') {
         if (!isOrdinaryUser) {
           room.users.push(user._id);
           user.userRooms.push(room._id);
