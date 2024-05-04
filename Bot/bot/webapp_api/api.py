@@ -83,3 +83,18 @@ class WebAppApi:
         except requests.exceptions.RequestException as e:
             print(f'Error creating user: {e}')
             return {"status": ApiStatus.ERROR, "message": 'Error creating user'}
+        
+
+    def room_exists(self, room_id):
+        req_url = f'{self._base_url}/api/rooms/{room_id}/exists'
+        print(f'Sending GET to {req_url}')
+
+        try:
+            response = requests.get(req_url, timeout=10)
+            response.raise_for_status()
+
+            data = response.json()
+            return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False)}
+        except requests.exceptions.RequestException as e:
+            print(f'Error checking room existence: {e}')
+            return {"status": ApiStatus.ERROR, "exists": False}

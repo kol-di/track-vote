@@ -41,9 +41,16 @@ async def handle_inline_button_click(event):
     if data.startswith(ADMIN_ROOM_PREFIX):
         try:
             room_id, role = data[len(ADMIN_ROOM_PREFIX):].split(':')
-            encrypted_data = encrypt_manager.encrypt_data(f"{room_id}:{role}")
-            invite_link = f"https://t.me/{BOT_USERNAME}?start={encrypted_data}"
-            await event.reply(f"**Here's your admin invite link:** [Click here]({invite_link})")
+            response = webappapi.room_exists(room_id)
+            if response['status'] == ApiStatus.SUCCESS:
+                if response['exists']:
+                    encrypted_data = encrypt_manager.encrypt_data(f"{room_id}:{role}")
+                    invite_link = f"https://t.me/{BOT_USERNAME}?start={encrypted_data}"
+                    await event.reply(f"**Here's your admin invite link:** [Click here]({invite_link})")
+                else:
+                    await event.answer("Эта комната больше недоступна", alert=True)
+            else:
+                await event.answer("Не удалось сгенерировать ссылку-приглашение", alert=True)
         except Exception as e:
             await event.answer(f"Error generating link: {e}", alert=True)
 
