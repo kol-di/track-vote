@@ -9,11 +9,6 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
         try {
-            // Ensures that only valid MongoDB object IDs are processed
-            if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-                return res.status(400).json({ message: 'Invalid room ID format' });
-            }
-
             const room = await Room.findById(id)
                 .populate('admins', 'telegramId') // Populating admins, assuming 'telegramId' is a field in the User model
                 .populate({

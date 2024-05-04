@@ -1,4 +1,10 @@
 import requests
+from enum import Enum
+
+
+class ApiStatus(Enum):
+    SUCCESS = 'success'
+    ERROR = 'error'
 
 
 class WebAppApi:
@@ -8,42 +14,58 @@ class WebAppApi:
     def new_room(self, tid, room_name):
         payload = {'name': room_name, 'telegramId': tid}
         try:
-            headers={'Content-Type': 'application/json'}
+            headers = {'Content-Type': 'application/json'}
             req_url = f'{self._base_url}/api/rooms/create'
-            print('Sending POST to ' + req_url)
+            print(f'Sending POST to {req_url}')
             response = requests.post(req_url, json=payload, headers=headers)
-        except requests.exceptions.RequestException as e:
-            print(f'Error code {response.status_code}; Error: {e}')
+            response.raise_for_status()
 
-        return response.json()['roomLink']
+            data = response.json()
+            return {"status": ApiStatus.SUCCESS, "data": data.get('roomLink')}
+        except requests.exceptions.RequestException as e:
+            print(f'Error creating a new room: {e}')
+            return {"status": ApiStatus.ERROR, "data": None}
     
     def admin_rooms(self, tid):
-            req_url = f'{self._base_url}/api/users/{tid}/admin-rooms'
-            print(f'Sending GET to {req_url}')
+        req_url = f'{self._base_url}/api/users/{tid}/admin-rooms'
+        print(f'Sending GET to {req_url}')
 
-            try:
-                response = requests.get(req_url, timeout=10)  # Specify a timeout for the request
-                response.raise_for_status()  # Raises an exception for 4xx/5xx errors
+        try:
+            response = requests.get(req_url, timeout=10)
+            response.raise_for_status()
 
-                # Attempt to parse JSON response
-                try:
-                    data = response.json()
-                    return {"status": "success", "data": data}
+            data = response.json()
+            return {"status": ApiStatus.SUCCESS, "data": data}
+        except requests.exceptions.RequestException as e:
+            print(f'Error fetching admin rooms: {e}')
+            return {"status": ApiStatus.ERROR, "data": []}
+    
+    def user_exists(self, tid):
+        req_url = f'{self._base_url}/api/users/{tid}'
+        print(f'Sending GET to {req_url}')
 
-                except ValueError:
-                    print("Invalid JSON response")
-                    return {"status": "error", "data": []}
+        try:
+            response = requests.get(req_url, timeout=10)
+            response.raise_for_status()
 
-            except requests.exceptions.HTTPError as http_err:
-                print(f'HTTP error occurred: {http_err}')
+            data = response.json()
+            return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False)}
+        except requests.exceptions.RequestException as e:
+            print(f'Error checking user existence: {e}')
+            return {"status": ApiStatus.ERROR, "exists": False}
+    
+    def add_user_to_room(self, room_id, telegram_id, role):
+        req_url = f'{self._base_url}/api/rooms/{room_id}/add-user'
+        print(f'Sending POST to {req_url}')
+        
+        payload = {'telegramId': telegram_id, 'role': role}
+        try:
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post(req_url, json=payload, headers=headers)
+            response.raise_for_status()
 
-            except requests.exceptions.ConnectionError:
-                print("Connection error occurred")
-
-            except requests.exceptions.Timeout:
-                print("Request timed out")
-
-            except requests.exceptions.RequestException as req_err:
-                print(f'An error occurred: {req_err}')
-            
-            return {"status": "error", "data": []}
+            message = response.json().get('message', 'User added successfully')
+            return {"status": ApiStatus.SUCCESS, "message": message}
+        except requests.exceptions.RequestException as e:
+            print(f'Error adding user to room: {e}')
+            return {"status": ApiStatus.ERROR, "message": 'Error adding user to room'}

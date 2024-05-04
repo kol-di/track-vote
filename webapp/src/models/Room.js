@@ -1,12 +1,21 @@
 const mongoose = require('mongoose');
 
+// Import nanoid with require
+const { customAlphabet } = require('nanoid');
+
+// Define the nanoid function with a specified alphabet and length
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8);
+
+
 const roomSchema = new mongoose.Schema({
+  _id: { type: String, default: () => nanoid() },
   name: { type: String, required: true },
   admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   tracks: [{
     spotifyId: { type: String, required: true },
     name: { type: String, required: true },
-    artists: [{ type: String }], // Assuming multiple artists could be involved
+    artists: [{ type: String }],
     albumCoverUrl: { type: String },
     votes: { type: Number, default: 0 }
   }]

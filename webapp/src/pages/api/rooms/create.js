@@ -14,6 +14,7 @@ export default async function handler(req, res) {
         try {
             // Check if the user already exists or create a new one
             const user = await ensureUserExists(telegramId);
+            console.log('Created new user inside /api/rooms/create');
 
             // Create new room with the user as admin
             const room = new Room({
@@ -22,10 +23,12 @@ export default async function handler(req, res) {
                 tracks: []
             });
             await room.save();
+            console.log('Created new room inside /api/rooms/create');
 
             // Add the newly created room to the user's list of rooms
             user.adminRooms.push(room._id);
             await user.save();
+            console.log('Added room to users room list inside /api/rooms/create');
 
             // Define base URL manually or via environment variables
             const baseURL = process.env.NEXT_PUBLIC_WEB_APP_BASE_URL; // Example: 'https://myapp.com'
