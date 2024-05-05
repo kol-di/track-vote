@@ -1,11 +1,10 @@
-from telethon import TelegramClient, events, Button
+from telethon import TelegramClient, events
 from telethon.tl import types
 from bot.webapp_api.api import WebAppApi, ApiStatus
 from bot.config import read_config
 from bot.utils.encrypt_utils import EncryptManager
 from bot.utils.chat_utils import button_list
 import asyncio
-
 
 
 # Configuration
@@ -17,6 +16,7 @@ BOT_USERNAME = config['TELEGRAM']['BOT_USERNAME']
 BASE_URL = config['WEBAPP']['BASE_URL']
 
 # Utility and API initialization
+client = TelegramClient('anon', api_id=API_ID, api_hash=API_HASH)
 encrypt_manager = EncryptManager()
 api = WebAppApi(BASE_URL)
 
@@ -28,17 +28,25 @@ GET_ROOM_PREFIX = "getRoom:"
 
 @events.register(events.NewMessage(pattern='/new_room'))
 async def create_new_room(event):
+    registered_commands = [
+        '/new_room', '/my_rooms', '/admin_room_link', '/user_room_link', '/start'] 
+
     print('Create new room')
     sender = await event.get_sender()
-    room_name = 'room_uebanov'
-    response = await api.new_room(sender.id, room_name)
-    
-    if response['status'] == ApiStatus.SUCCESS:
-        room_link = response['data']
-        room_link_btn = types.KeyboardButtonWebView(room_name, room_link)
-        await event.respond("**Войти в комнату:**", buttons=[room_link_btn])
-    else:
-        await event.respond("Ошибка при создании команты")
+
+    room_name = None
+    async with client.conversation(sender, timeout=60, exclusive=False, replies_are_responses=True) as conv:
+        await conv.send_message("Как вы хотите назвать комнату?")
+        room_name = (await conv.get_response()).text
+
+    if (room_name is not None) and (room_name not in registered_commands):
+        response = await api.new_room(sender.id, room_name)
+        if response['status'] == ApiStatus.SUCCESS:
+            room_link = response['data']
+            room_link_btn = types.KeyboardButtonWebView(room_name, room_link)
+            await event.respond("**Войти в комнату:**", buttons=[room_link_btn])
+        else:
+            await event.respond("Ошибка при создании команты")
 
 
 @events.register(events.NewMessage(pattern='/my_rooms'))
@@ -212,7 +220,6 @@ async def start(event):
 
 
 async def start_bot():
-    client = TelegramClient('anon', api_id=API_ID, api_hash=API_HASH)
     await client.start(bot_token=BOT_TOKEN)
     print('Telegram client started')
     await api.start_session()
