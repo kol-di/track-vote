@@ -19,7 +19,9 @@ encrypt_manager = EncryptManager()
 api = WebAppApi(BASE_URL)
 
 # Callback prefixes
-GEN_LINK_PREFIX = "genLink:"
+ADMIN_LINK_PREFIX = "adminLink:"
+USER_LINK_PREFIX = "userLink:"
+CALLBACK_PREFIXES = [ADMIN_LINK_PREFIX, USER_LINK_PREFIX]
 
 
 @events.register(events.NewMessage(pattern='/new_room'))
@@ -37,30 +39,42 @@ async def create_new_room(event):
         await event.respond("Ошибка при создании команты")
 
 
+### Generate links ###
+
+async def _generate_join_link(event, data, prefix, response_text):
+    try:
+        room_id, role = data[len(prefix):].split(':')
+        response = await api.room_exists(room_id)
+        if response['status'] == ApiStatus.SUCCESS:
+            if response['exists']:
+                encrypted_data = encrypt_manager.encrypt_data(f"{room_id}:{role}")
+                invite_link = f"https://t.me/{BOT_USERNAME}?start={encrypted_data}"
+                await event.reply(f"{response_text} [ссылка]({invite_link})")
+            else:
+                await event.answer("Эта комната больше недоступна", alert=True)
+        else:
+            await event.answer("Не удалось сгенерировать ссылку-приглашение", alert=True)
+    except Exception as e:
+        await event.answer(f"Ошибка при генерации ссылки", alert=True)
+
+
 @events.register(events.CallbackQuery)
 async def handle_inline_button_click(event):
+    prefix_params = {
+        ADMIN_LINK_PREFIX: {"response_text": "Перешли ссылку что бы добавить админов в комнату:"}, 
+        USER_LINK_PREFIX: {"response_text": "Перешли ссылку что бы добавить пользователей в комнату:"}
+    }
+
     data = event.data.decode('utf-8')
-
-    if data.startswith(GEN_LINK_PREFIX):
-        try:
-            room_id, role = data[len(GEN_LINK_PREFIX):].split(':')
-            response = await api.room_exists(room_id)
-            if response['status'] == ApiStatus.SUCCESS:
-                if response['exists']:
-                    encrypted_data = encrypt_manager.encrypt_data(f"{room_id}:{role}")
-                    invite_link = f"https://t.me/{BOT_USERNAME}?start={encrypted_data}"
-                    await event.reply(f"Перешли ссылку что бы добавить админов в комнату: [ссылка]({invite_link})")
-                else:
-                    await event.answer("Эта комната больше недоступна", alert=True)
-            else:
-                await event.answer("Не удалось сгенерировать ссылку-приглашение", alert=True)
-        except Exception as e:
-            await event.answer(f"Ошибка при генерации ссылки", alert=True)
+    for prefix in CALLBACK_PREFIXES:
+        if data.startswith(prefix):
+            await _generate_join_link(event, data, prefix, **prefix_params[prefix])         
 
 
-"""Room link generation"""
 
-async def _room_buttons(event, invite_url_role_param, respond_msg):
+### Prompt link generation ###
+
+async def _room_buttons(event, invite_url_role_param, prefix, respond_msg):
     sender = await event.get_sender()
     response = await api.admin_rooms(sender.id)
 
@@ -72,7 +86,7 @@ async def _room_buttons(event, invite_url_role_param, respond_msg):
         buttons = [
             Button.inline(
                 room['name'],
-                data=f"{GEN_LINK_PREFIX}{room['id']}:{invite_url_role_param}"
+                data=f"{prefix}{room['id']}:{invite_url_role_param}"
             ) for room in response['data']
         ]
         buttons_in_row = 2
@@ -85,6 +99,7 @@ async def send_admin_room_buttons(event):
     await _room_buttons(
         event, 
         invite_url_role_param='a', 
+        prefix=ADMIN_LINK_PREFIX,
         respond_msg="Для какой комнаты сгенерировать админскую ссылку?"
     )
 
@@ -94,9 +109,12 @@ async def send_user_room_buttons(event):
     await _room_buttons(
         event, 
         invite_url_role_param='u', 
+        prefix=USER_LINK_PREFIX,
         respond_msg="Для какой комнаты сгенерировать обычную ссылку?"
     )
 
+
+### Start ###
 
 @events.register(events.NewMessage(pattern='/start'))
 async def start(event):
