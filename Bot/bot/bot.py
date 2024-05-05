@@ -35,9 +35,12 @@ async def create_new_room(event):
     sender = await event.get_sender()
 
     room_name = None
-    async with client.conversation(sender, timeout=60, exclusive=False, replies_are_responses=True) as conv:
-        await conv.send_message("Как вы хотите назвать комнату?")
-        room_name = (await conv.get_response()).text
+    async with client.conversation(sender, timeout=5, exclusive=False, replies_are_responses=True) as conv:
+        try:
+            await conv.send_message("Как вы хотите назвать комнату?")
+            room_name = (await conv.get_response()).text
+        except TimeoutError:
+            room_name = None
 
     if (room_name is not None) and (room_name not in registered_commands):
         response = await api.new_room(sender.id, room_name)
