@@ -1,4 +1,4 @@
-import requests
+from aiohttp import ClientSession, ClientTimeout, ClientResponseError, ClientError
 from enum import Enum
 
 
@@ -10,91 +10,87 @@ class ApiStatus(Enum):
 class WebAppApi:
     def __init__(self, base_url):
         self._base_url = base_url
+        self.session = None
 
-    def new_room(self, tid, room_name):
+
+    async def start_session(self):
+        if not self.session or self.session.closed:
+            self.session = ClientSession(timeout=ClientTimeout(total=10))
+
+    async def close_session(self):
+        if self.session and not self.session.closed:
+            await self.session.close()
+
+    async def _perform_request(self, method, endpoint, **kwargs):
+        await self.start_session()
+        req_url = f'{self._base_url}{endpoint}'
+        print(f'Sending {method.upper()} to {req_url}')
+
+        try:
+            async with self.session.request(method, req_url, **kwargs) as response:
+                response.raise_for_status()
+                data = await response.json()
+                return ApiStatus.SUCCESS, data
+        except ClientResponseError as e:
+            print(f'Client response error {e.status}: {e.message} while accessing {req_url}')
+        except ClientError as e:
+            print(f'Error occurred while accessing {req_url}: {str(e)}')
+
+        return ApiStatus.ERROR, {}
+    
+
+    async def new_room(self, tid, room_name):
         payload = {'name': room_name, 'telegramId': tid}
-        try:
-            headers = {'Content-Type': 'application/json'}
-            req_url = f'{self._base_url}/api/rooms/create'
-            print(f'Sending POST to {req_url}')
-            response = requests.post(req_url, json=payload, headers=headers)
-            response.raise_for_status()
+        headers = {'Content-Type': 'application/json'}   
+        status, data = await self._perform_request("post", "/api/rooms/create", json=payload, headers=headers)
+        match status:
+            case ApiStatus.SUCCESS:
+                return {"status": ApiStatus.SUCCESS, "data": data.get('roomLink')}
+            case ApiStatus.ERROR:
+                return {"status": ApiStatus.ERROR, "data": None}
 
-            data = response.json()
-            return {"status": ApiStatus.SUCCESS, "data": data.get('roomLink')}
-        except requests.exceptions.RequestException as e:
-            print(f'Error creating a new room: {e}')
-            return {"status": ApiStatus.ERROR, "data": None}
     
-    def admin_rooms(self, tid):
-        req_url = f'{self._base_url}/api/users/{tid}/admin-rooms'
-        print(f'Sending GET to {req_url}')
-
-        try:
-            response = requests.get(req_url, timeout=10)
-            response.raise_for_status()
-
-            data = response.json()
-            return {"status": ApiStatus.SUCCESS, "data": data}
-        except requests.exceptions.RequestException as e:
-            print(f'Error fetching admin rooms: {e}')
-            return {"status": ApiStatus.ERROR, "data": []}
+    async def admin_rooms(self, tid):
+        status, data = await self._perform_request("get", f"/api/users/{tid}/admin-rooms")
+        match status:
+            case ApiStatus.SUCCESS:
+                return {"status": ApiStatus.SUCCESS, "data": data}
+            case ApiStatus.ERROR:
+                return {"status": ApiStatus.ERROR, "data": []}
     
-    def user_exists(self, tid):
-        req_url = f'{self._base_url}/api/users/{tid}'
-        print(f'Sending GET to {req_url}')
-
-        try:
-            response = requests.get(req_url, timeout=10)
-            response.raise_for_status()
-
-            data = response.json()
-            return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False)}
-        except requests.exceptions.RequestException as e:
-            print(f'Error checking user existence: {e}')
-            return {"status": ApiStatus.ERROR, "exists": False}
     
-    def add_user_to_room(self, room_id, telegram_id, role):
-        req_url = f'{self._base_url}/api/rooms/{room_id}/add-user'
-        print(f'Sending POST to {req_url}')
-        
+    async def user_exists(self, tid):
+        status, data = await self._perform_request("get", f"/api/users/{tid}")
+        match status:
+            case ApiStatus.SUCCESS:
+                return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False)}
+            case ApiStatus.ERROR:
+                return {"status": ApiStatus.ERROR, "exists": False}
+    
+    async def add_user_to_room(self, room_id, telegram_id, role):
         payload = {'telegramId': telegram_id, 'role': role}
-        try:
-            headers = {'Content-Type': 'application/json'}
-            response = requests.post(req_url, json=payload, headers=headers)
-            response.raise_for_status()
+        headers = {'Content-Type': 'application/json'}
+        status, data = await self._perform_request("post", f"/api/rooms/{room_id}/add-user", json=payload, headers=headers)
+        match status:
+            case ApiStatus.SUCCESS:
+                return {"status": ApiStatus.SUCCESS, "message": data.get('message', 'User added successfully')}
+            case ApiStatus.ERROR:
+                return {"status": ApiStatus.ERROR, "message": "Error adding user to room"}
 
-            message = response.json().get('message', 'User added successfully')
-            return {"status": ApiStatus.SUCCESS, "message": message}
-        except requests.exceptions.RequestException as e:
-            print(f'Error adding user to room: {e}')
-            return {"status": ApiStatus.ERROR, "message": 'Error adding user to room'}
         
-    def create_user(self, telegram_id):
-        req_url = f'{self._base_url}/api/users/{telegram_id}/create'
-        print(f'Sending POST to {req_url}')
-        try:
-            headers = {'Content-Type': 'application/json'}
-            response = requests.post(req_url, headers=headers)
-            response.raise_for_status()
-
-            data = response.json()
-            return {"status": ApiStatus.SUCCESS, "message": data.get('message', ''), "userId": data.get('userId')}
-        except requests.exceptions.RequestException as e:
-            print(f'Error creating user: {e}')
-            return {"status": ApiStatus.ERROR, "message": 'Error creating user'}
+    async def create_user(self, telegram_id):        
+        status, data = await self._perform_request("post", f"/api/users/{telegram_id}/create", headers={'Content-Type': 'application/json'})
+        match status:
+            case ApiStatus.SUCCESS:
+                return {"status": ApiStatus.SUCCESS, "message": data.get('message', ''), "userId": data.get('userId')}
+            case ApiStatus.ERROR:
+                return {"status": ApiStatus.ERROR, "message": 'Error creating user'}
         
 
-    def room_exists(self, room_id):
-        req_url = f'{self._base_url}/api/rooms/{room_id}/exists'
-        print(f'Sending GET to {req_url}')
-
-        try:
-            response = requests.get(req_url, timeout=10)
-            response.raise_for_status()
-
-            data = response.json()
-            return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False)}
-        except requests.exceptions.RequestException as e:
-            print(f'Error checking room existence: {e}')
-            return {"status": ApiStatus.ERROR, "exists": False}
+    async def room_exists(self, room_id):
+        status, data = await self._perform_request("get", f"/api/rooms/{room_id}/exists")
+        match status:
+            case ApiStatus.SUCCESS:
+                return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False)}
+            case ApiStatus.ERROR:
+                return {"status": ApiStatus.ERROR, "exists": False}
