@@ -89,50 +89,51 @@ async def start(event):
     sender = await event.get_sender()
     user_id = sender.id
 
-    user_check = await api.user_exists(user_id)
+    response_user_exists = await api.user_exists(user_id)
+    if response_user_exists['status'] == ApiStatus.SUCCESS:
+        # always create new users and greet if successful
+        if not response_user_exists['exists']:
+            response_create = await api.create_user(user_id)
+            if response_create['status'] == ApiStatus.SUCCESS:
+                await event.respond("Добро пожаловать в бота! Посмотри список доступных команд и продолжай пользоваться.")
+            else:
+                await event.reply("Ошибка при создании нового пользователя")
+                return
+            
+        params = event.raw_text.split(maxsplit=1)
 
-    params = event.raw_text.split(maxsplit=1)
+        # if entered via invite link launch join link generation
+        if len(params) > 1:
+            encoded_data = params[1]
+            try:
+                decrypted_data = encrypt_manager.decrypt_data(encoded_data)
+                decrypted_str = decrypted_data.decode('utf-8')
+                room_id, role = decrypted_str.split(':')
 
-    if len(params) > 1:
-        encoded_data = params[1]
-        try:
-            decrypted_data = encrypt_manager.decrypt_data(encoded_data)
-            decrypted_str = decrypted_data.decode('utf-8')
-            room_id, role = decrypted_str.split(':')
+                # check if room in the url is still present
+                response_room_exists = await api.room_exists(room_id)
+                if response_room_exists['status'] == ApiStatus.SUCCESS:
+                    if response_room_exists['exists']:
+                        # Add the user to the room based on the role
+                        response_add = await api.add_user_to_room(room_id, user_id, role)
 
-            # check if room in the url is still present
-            response_exists = await api.room_exists(room_id)
-            if response_exists['status'] == ApiStatus.SUCCESS:
-                if response_exists['exists']:
-                    # Add the user to the room based on the role
-                    response_add = await api.add_user_to_room(room_id, user_id, role)
-
-                    if response_add['status'] == ApiStatus.SUCCESS:
-                        join_link = f"{BASE_URL}/rooms/{room_id}"
-                        join_link_btn = types.KeyboardButtonWebView(response_exists['name'], join_link)
-                        await event.respond("Присоединиться к комнате:", buttons=[join_link_btn])
+                        if response_add['status'] == ApiStatus.SUCCESS:
+                            join_link = f"{BASE_URL}/rooms/{room_id}"
+                            join_link_btn = types.KeyboardButtonWebView(response_room_exists['name'], join_link)
+                            await event.respond("Присоединиться к комнате:", buttons=[join_link_btn])
+                        else:
+                            await event.reply("Не удалось добавить тебя в комнату")
                     else:
-                        await event.reply("Не удалось добавить тебя в комнату")
+                        await event.reply("Комната больше недоступна")
                 else:
-                    await event.reply("Комната больше недоступна")
-            else:
-                await event.reply("Не удалось найти комнату")
-
-        except Exception as e:
-            await event.reply(f"Ссылка содержит неверные данные")
-
+                    await event.reply("Не удалось найти комнату")
+            except Exception as e:
+                await event.reply(f"Ссылка содержит неверные данные")
+        # not via invite link and not new user
+        elif response_user_exists['exists']:
+            await event.reply("Бот уже запущен. Используй доступные команды для продолжения работы.")
     else:
-        if user_check['status'] == ApiStatus.SUCCESS:
-            if not user_check['exists']:
-                response_create = await api.create_user(user_id)
-                if response_create['status'] == ApiStatus.SUCCESS:
-                    await event.reply("Добро пожаловать в бота! Посмотри список доступных команд и продолжай пользоваться.")
-                else:
-                    await event.reply("Ошибка при создании нового пользователя")
-            else:
-                await event.reply("Бот уже запущен. Используй доступные команды для продолжения работы.")
-        else:
-            await event.reply("Ошибка при запуске бота")
+        await event.reply("Ошибка при проверке существования пользователя")
 
 
 async def start_bot():
