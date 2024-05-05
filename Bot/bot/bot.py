@@ -17,7 +17,9 @@ BASE_URL = config['WEBAPP']['BASE_URL']
 # Utility and API initialization
 encrypt_manager = EncryptManager()
 api = WebAppApi(BASE_URL)
-ADMIN_ROOM_PREFIX = "adminRoom:"
+
+# Callback prefixes
+GEN_LINK_PREFIX = "genLink:"
 
 
 @events.register(events.NewMessage(pattern='/new_room'))
@@ -39,9 +41,9 @@ async def create_new_room(event):
 async def handle_inline_button_click(event):
     data = event.data.decode('utf-8')
 
-    if data.startswith(ADMIN_ROOM_PREFIX):
+    if data.startswith(GEN_LINK_PREFIX):
         try:
-            room_id, role = data[len(ADMIN_ROOM_PREFIX):].split(':')
+            room_id, role = data[len(GEN_LINK_PREFIX):].split(':')
             response = await api.room_exists(room_id)
             if response['status'] == ApiStatus.SUCCESS:
                 if response['exists']:
@@ -56,8 +58,9 @@ async def handle_inline_button_click(event):
             await event.answer(f"Ошибка при генерации ссылки", alert=True)
 
 
-@events.register(events.NewMessage(pattern='/admin_room_link'))
-async def send_admin_room_buttons(event):
+"""Room link generation"""
+
+async def _room_buttons(event, invite_url_role_param, respond_msg):
     sender = await event.get_sender()
     response = await api.admin_rooms(sender.id)
 
@@ -69,19 +72,30 @@ async def send_admin_room_buttons(event):
         buttons = [
             Button.inline(
                 room['name'],
-                data=f"{ADMIN_ROOM_PREFIX}{room['id']}:a"
+                data=f"{GEN_LINK_PREFIX}{room['id']}:{invite_url_role_param}"
             ) for room in response['data']
         ]
         buttons_in_row = 2
         buttons = [buttons[i*buttons_in_row:(i+1)*buttons_in_row] for i in range(len(buttons) // 2 + 1)]
-        await event.respond("Для какой комнаты сгенерировать админскую ссылку?", buttons=buttons)
+        await event.respond(respond_msg, buttons=buttons)
+
+
+@events.register(events.NewMessage(pattern='/admin_room_link'))
+async def send_admin_room_buttons(event):
+    await _room_buttons(
+        event, 
+        invite_url_role_param='a', 
+        respond_msg="Для какой комнаты сгенерировать админскую ссылку?"
+    )
 
 
 @events.register(events.NewMessage(pattern='/user_room_link'))
 async def send_user_room_buttons(event):
-    sender = await event.get_sender()
-    room_link = await api.user_room_link(sender.id, 'room_uebanov')
-    await event.respond("Here's a link to join room as user:", room_link)
+    await _room_buttons(
+        event, 
+        invite_url_role_param='u', 
+        respond_msg="Для какой комнаты сгенерировать обычную ссылку?"
+    )
 
 
 @events.register(events.NewMessage(pattern='/start'))
@@ -114,9 +128,9 @@ async def start(event):
                 response_room_exists = await api.room_exists(room_id)
                 if response_room_exists['status'] == ApiStatus.SUCCESS:
                     if response_room_exists['exists']:
+
                         # Add the user to the room based on the role
                         response_add = await api.add_user_to_room(room_id, user_id, role)
-
                         if response_add['status'] == ApiStatus.SUCCESS:
                             join_link = f"{BASE_URL}/rooms/{room_id}"
                             join_link_btn = types.KeyboardButtonWebView(response_room_exists['name'], join_link)
@@ -129,6 +143,7 @@ async def start(event):
                     await event.reply("Не удалось найти комнату")
             except Exception as e:
                 await event.reply(f"Ссылка содержит неверные данные")
+
         # not via invite link and not new user
         elif response_user_exists['exists']:
             await event.reply("Бот уже запущен. Используй доступные команды для продолжения работы.")
