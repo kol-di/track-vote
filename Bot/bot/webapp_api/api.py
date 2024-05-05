@@ -57,8 +57,16 @@ class WebAppApi:
                 return {"status": ApiStatus.SUCCESS, "data": data}
             case ApiStatus.ERROR:
                 return {"status": ApiStatus.ERROR, "data": []}
+            
+    async def user_rooms(self, tid):
+        status, data = await self._perform_request("get", f"/api/users/{tid}/user-rooms")
+        match status:
+            case ApiStatus.SUCCESS:
+                return {"status": ApiStatus.SUCCESS, "data": data}
+            case ApiStatus.ERROR:
+                return {"status": ApiStatus.ERROR, "data": []}
     
-    
+
     async def user_exists(self, tid):
         status, data = await self._perform_request("get", f"/api/users/{tid}")
         match status:
