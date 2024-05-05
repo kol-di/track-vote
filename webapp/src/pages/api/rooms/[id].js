@@ -1,6 +1,5 @@
 import connectDB from '../../../db/mongoose'; // Adjust the path as necessary
 import Room from '../../../models/Room'; // Ensure this path is correct
-import User from '../../../models/User'; // Ensure you have this model and it's correct
 
 export default async function handler(req, res) {
     await connectDB();

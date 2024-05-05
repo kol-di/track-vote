@@ -91,6 +91,6 @@ class WebAppApi:
         status, data = await self._perform_request("get", f"/api/rooms/{room_id}/exists")
         match status:
             case ApiStatus.SUCCESS:
-                return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False)}
+                return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False), "name": data.get('roomName')}
             case ApiStatus.ERROR:
                 return {"status": ApiStatus.ERROR, "exists": False}

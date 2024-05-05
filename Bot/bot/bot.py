@@ -16,7 +16,6 @@ BASE_URL = config['WEBAPP']['BASE_URL']
 
 # Utility and API initialization
 encrypt_manager = EncryptManager()
-# webappapi = WebAppApi(BASE_URL)
 api = WebAppApi(BASE_URL)
 ADMIN_ROOM_PREFIX = "adminRoom:"
 
@@ -33,7 +32,7 @@ async def create_new_room(event):
         room_link_btn = types.KeyboardButtonWebView(room_name, room_link)
         await event.respond("**Войти в комнату:**", buttons=[room_link_btn])
     else:
-        await event.respond("Error creating the room")
+        await event.respond("Ошибка при создании команты")
 
 
 @events.register(events.CallbackQuery)
@@ -48,13 +47,13 @@ async def handle_inline_button_click(event):
                 if response['exists']:
                     encrypted_data = encrypt_manager.encrypt_data(f"{room_id}:{role}")
                     invite_link = f"https://t.me/{BOT_USERNAME}?start={encrypted_data}"
-                    await event.reply(f"**Here's your admin invite link:** [Click here]({invite_link})")
+                    await event.reply(f"Перешли ссылку что бы добавить админов в комнату: [ссылка]({invite_link})")
                 else:
                     await event.answer("Эта комната больше недоступна", alert=True)
             else:
                 await event.answer("Не удалось сгенерировать ссылку-приглашение", alert=True)
         except Exception as e:
-            await event.answer(f"Error generating link: {e}", alert=True)
+            await event.answer(f"Ошибка при генерации ссылки", alert=True)
 
 
 @events.register(events.NewMessage(pattern='/admin_room_link'))
@@ -82,12 +81,11 @@ async def send_admin_room_buttons(event):
 async def send_user_room_buttons(event):
     sender = await event.get_sender()
     room_link = await api.user_room_link(sender.id, 'room_uebanov')
-    await event.respond("Here's a link to join room as admin:", room_link)
+    await event.respond("Here's a link to join room as user:", room_link)
 
 
 @events.register(events.NewMessage(pattern='/start'))
 async def start(event):
-    print('inside start')
     sender = await event.get_sender()
     user_id = sender.id
 
@@ -102,29 +100,37 @@ async def start(event):
             decrypted_str = decrypted_data.decode('utf-8')
             room_id, role = decrypted_str.split(':')
 
-            # Add the user to the room based on the role
-            response = await api.add_user_to_room(room_id, user_id, role)
+            # check if room in the url is still present
+            response_exists = await api.room_exists(room_id)
+            if response_exists['status'] == ApiStatus.SUCCESS:
+                if response_exists['exists']:
+                    # Add the user to the room based on the role
+                    response_add = await api.add_user_to_room(room_id, user_id, role)
 
-            if response['status'] == ApiStatus.SUCCESS:
-                join_link = f"{BASE_URL}/rooms/{room_id}"
-                join_link_btn = types.KeyboardButtonWebView("Room", join_link)
-                await event.respond("Click the link below to join the room:", buttons=[join_link_btn])
+                    if response_add['status'] == ApiStatus.SUCCESS:
+                        join_link = f"{BASE_URL}/rooms/{room_id}"
+                        join_link_btn = types.KeyboardButtonWebView(response_exists['name'], join_link)
+                        await event.respond("Присоединиться к комнате:", buttons=[join_link_btn])
+                    else:
+                        await event.reply("Не удалось добавить тебя в комнату")
+                else:
+                    await event.reply("Комната больше недоступна")
             else:
-                await event.reply("Error adding you to the room")
+                await event.reply("Не удалось найти комнату")
 
         except Exception as e:
-            await event.reply(f"Error decoding the invitation data: {e}")
+            await event.reply(f"Ссылка содержит неверные данные")
 
     else:
         if user_check['status'] == ApiStatus.SUCCESS:
             if not user_check['exists']:
-                response = await api.create_user(user_id)
-                if response['status'] == ApiStatus.SUCCESS:
-                    await event.reply("Welcome to the bot! Explore by using the provided commands.")
+                response_create = await api.create_user(user_id)
+                if response_create['status'] == ApiStatus.SUCCESS:
+                    await event.reply("Добро пожаловать в бота! Посмотри список доступных команд и продолжай пользоваться.")
                 else:
                     await event.reply("Ошибка при создании нового пользователя")
             else:
-                await event.reply("The bot is already started. Use the available commands to continue.")
+                await event.reply("Бот уже запущен. Используй доступные команды для продолжения работы.")
         else:
             await event.reply("Ошибка при запуске бота")
 
@@ -135,7 +141,7 @@ async def start_bot():
     print('Telegram client started')
     await api.start_session()
     print('Client session started')
-    
+
     for handler in [
         start,
         create_new_room,

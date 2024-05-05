@@ -18,7 +18,11 @@ export default async function handler(req, res) {
             const exists = !!room;
 
             // Respond based on the existence of the room
-            return res.status(200).json({ exists });
+            if (exists) {
+                return res.status(200).json({ exists, roomName: room.name });    
+            } else {
+                return res.status(200).json({ exists });
+            }
         } catch (error) {
             console.error('Error checking room existence:', error);
             return res.status(500).json({ exists: false, message: 'Internal server error', error: error.message });
