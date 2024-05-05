@@ -222,6 +222,8 @@ async def start(event):
         await event.reply("Ошибка при проверке существования пользователя")
 
 
+### Execution ###
+
 async def start_bot():
     await client.start(bot_token=BOT_TOKEN)
     print('Telegram client started')
@@ -238,11 +240,9 @@ async def start_bot():
     ]:
         client.add_event_handler(handler)
 
-    try:
-        await client.run_until_disconnected()
-    except (KeyboardInterrupt, SystemExit, asyncio.exceptions.CancelledError):
-        print('Bot shutting down...')
-        await client.disconnect()
-        await api.close_session()
-        print('Client and session closed')
+    await client.run_until_disconnected()
+
+async def exit_bot():
+    await client.disconnect()
+    await api.close_session()
         
