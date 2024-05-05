@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
         try {
             // Find the user by Telegram ID
-            const user = await User.findOne({ telegramId }).exec();
+            const user = await User.findOne({ _id: telegramId }).exec();
             const exists = !!user;
             res.status(200).json({ exists });
         } catch (error) {

@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
         try {
             const room = await Room.findById(id)
-                .populate('admins', 'telegramId') // Populating admins, assuming 'telegramId' is a field in the User model
+                .populate('admins', '_id') // Populating admins, assuming '_id' is a field in the User model
                 .populate({
                     path: 'tracks',
                     // Selecting all fields for tracks
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
             const response = {
                 id: room._id,
                 roomName: room.name,
-                admins: room.admins.map(admin => admin.telegramId),
+                admins: room.admins.map(admin => admin._id),
                 tracks: room.tracks.map(track => ({
                     spotifyId: track.spotifyId,
                     name: track.name,

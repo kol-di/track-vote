@@ -10,8 +10,8 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8);
 const roomSchema = new mongoose.Schema({
   _id: { type: String, default: () => nanoid() },
   name: { type: String, required: true },
-  admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  admins: [{ type: String, ref: 'User' }],
+  users: [{ type: String, ref: 'User' }],
   tracks: [{
     spotifyId: { type: String, required: true },
     name: { type: String, required: true },

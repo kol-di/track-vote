@@ -4,11 +4,11 @@ import User from '../models/User'; // Adjust the import path to your actual User
 export async function ensureUserExists(telegramId) {
     try {
         // Attempt to find the user by their Telegram ID
-        let user = await User.findOne({ telegramId });
+        let user = await User.findOne({ _id: telegramId });
 
         // If the user doesn't exist, create a new one
         if (!user) {
-            user = new User({ telegramId });
+            user = new User({ _id: telegramId });
             await user.save();
         }
 
