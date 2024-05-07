@@ -19,17 +19,15 @@ export default async function handler(req, res) {
             // Get the previous vote for this room (if any)
             const previousVote = user.currentVote?.get(roomId);
 
-            console.log('before set');
-            console.log('roomId', roomId, 'spotify', spotifyId);
-            // Update the current vote for the user
-            user.currentVote.set(roomId, spotifyId);
-            console.log('after set');
+            if (previousVote === spotifyId) {
+                res.status(200).json({ decrementedTrackId: null, sameClick: true });
 
-            // Save the user model
-            await user.save();
-
-            // Return the Spotify ID of the removed track
-            res.status(200).json({ decrementedTrackId: previousVote ?? null });
+            } else {
+                // Update the current vote for the user
+                user.currentVote.set(roomId, spotifyId);
+                await user.save();
+                res.status(200).json({ decrementedTrackId: previousVote ?? null });
+            }
         } catch (error) {
             console.error('Error updating vote:', error);
             res.status(500).json({ message: 'Internal server error', error: error.message });

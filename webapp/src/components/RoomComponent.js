@@ -62,9 +62,11 @@ const RoomComponent = ({ roomData, socket }) => {
         });
     
         if (response.ok) {
-            const { decrementedTrackId } = await response.json();
+            const { decrementedTrackId, sameClick = false } = await response.json();
 
-            let updatedTrack = null;
+            if (sameClick) {
+                return;
+            }
     
             // Update the top chart locally
             setTopChart(prevTopChart => {
