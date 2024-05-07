@@ -82,7 +82,57 @@ const RoomComponent = ({ roomData, socket }) => {
 
     const debouncedSearch = debounce(query => fetchSearchResults(query), 300);
 
-    const updateTopChart = async (trackFromSpotify) => {
+    const updateTopChartFromList = async (trackFromList) => {    
+        console.log('trackFromList inside updateTopChart', trackFromList);
+        // Retrieve the Telegram ID via the Web Apps API
+        const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        const telegramId = telegramUser?.id;
+    
+        if (!telegramId) {
+            console.error('Unable to retrieve Telegram ID from the WebApp API.');
+            return;
+        }
+    
+        // Prepare the vote request to `/api/vote`
+        const response = await fetch('/api/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                roomId: roomData.id,
+                spotifyId: trackFromList.spotifyId,
+                telegramId
+            })
+        });
+    
+        if (response.ok) {
+            const { decrementedTrackId, sameClick = false } = await response.json();
+
+            if (sameClick) {
+                return;
+            }
+
+            const trackUpdates = [
+                { track: { ...trackFromList }, incremented: true }
+            ];
+            
+            // Add the decremented track only if decrementedTrackId is not null
+            if (decrementedTrackId) {
+                trackUpdates.push({ track: { spotifyId: decrementedTrackId }, incremented: false });
+            }
+
+            updateTopChartState(trackUpdates);
+            
+            socket.emit('updateTopChart', {
+                roomId: roomData.id,
+                tracks: trackUpdates
+            });
+
+        } else {
+            console.error('Failed to update votes:', response.statusText);
+        }
+    };
+
+    const updateTopChartFromSpotify = async (trackFromSpotify) => {
         setSearchResults([]);
     
         console.log('trackFromSpotify inside updateTopChart', trackFromSpotify);
@@ -232,7 +282,7 @@ const RoomComponent = ({ roomData, socket }) => {
                         <div className={styles.resultsContainer}>
                             <ul className={styles.trackList}>
                                 {searchResults.map((track, index) => (
-                                    <li key={index} className={styles.trackItem} onClick={() => updateTopChart(track)}>
+                                    <li key={index} className={styles.trackItem} onClick={() => updateTopChartFromSpotify(track)}>
                                         <Image src={track.album.images.slice(-1)[0].url} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
                                         <div className={styles.trackInfo}>
                                             <div className={styles.artistName}>{track.artists.map(artist => artist.name).join(', ')}</div>
@@ -251,7 +301,7 @@ const RoomComponent = ({ roomData, socket }) => {
                     <div className={styles.topChartContainer}>
                         <ul className={styles.trackList}>
                             {topChart.map((track) => (
-                                <li key={track.spotifyId} className={styles.trackItem}>
+                                <li key={track.spotifyId} className={styles.trackItem} onClick={() => updateTopChartFromList(track)}>
                                     <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
                                     <div className={styles.trackInfo}>
                                         <div className={styles.artistName}>{track.artists.join(', ')}</div>
