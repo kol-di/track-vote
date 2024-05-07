@@ -8,7 +8,12 @@ export async function ensureUserExists(telegramId) {
 
         // If the user doesn't exist, create a new one
         if (!user) {
-            user = new User({ _id: telegramId });
+            user = new User({
+                _id: telegramId,
+                adminRooms: [],
+                userRooms: [],
+                currentVote: new Map() // Initialize as an empty Map
+            });
             await user.save();
         }
 

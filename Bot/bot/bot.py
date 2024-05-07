@@ -35,7 +35,7 @@ async def create_new_room(event):
     sender = await event.get_sender()
 
     room_name = None
-    async with client.conversation(sender, timeout=5, exclusive=False, replies_are_responses=True) as conv:
+    async with client.conversation(sender, timeout=60, exclusive=False, replies_are_responses=True) as conv:
         try:
             await conv.send_message("Как вы хотите назвать комнату?")
             room_name = (await conv.get_response()).text
