@@ -15,6 +15,51 @@ const RoomComponent = ({ roomData, socket }) => {
     const searchContainerRef = useRef(null);
 
 
+    const updateTopChartState = (updates) => {
+        setTopChart(prevTopChart => {
+          let newTopChart = [...prevTopChart];
+      
+          updates.forEach(update => {
+            const { track, incremented } = update;
+            const trackIndex = newTopChart.findIndex(t => t.spotifyId === track.spotifyId);
+      
+            if (trackIndex !== -1) {
+              // Track exists, update votes
+              const updatedVotes = incremented ? newTopChart[trackIndex].votes + 1 : newTopChart[trackIndex].votes - 1;
+              newTopChart[trackIndex] = { ...newTopChart[trackIndex], votes: updatedVotes };
+      
+              // Remove track if votes drop to zero
+              if (updatedVotes <= 0) {
+                newTopChart.splice(trackIndex, 1);
+              } else {
+                // Adjust position in sorted array (move up or down)
+                let moveIndex = trackIndex;
+                while (incremented && moveIndex > 0 && newTopChart[moveIndex - 1].votes < newTopChart[moveIndex].votes) {
+                  [newTopChart[moveIndex], newTopChart[moveIndex - 1]] = [newTopChart[moveIndex - 1], newTopChart[moveIndex]];
+                  moveIndex--;
+                }
+                while (!incremented && moveIndex < newTopChart.length - 1 && newTopChart[moveIndex + 1].votes > newTopChart[moveIndex].votes) {
+                  [newTopChart[moveIndex], newTopChart[moveIndex + 1]] = [newTopChart[moveIndex + 1], newTopChart[moveIndex]];
+                  moveIndex++;
+                }
+              }
+            } else if (incremented) {
+              // New track, add to chart
+              newTopChart.push({ ...track, votes: 1 });
+              // Move new track to correct position (should start from the bottom as it has 1 vote)
+              let moveIndex = newTopChart.length - 1;
+              while (moveIndex > 0 && newTopChart[moveIndex - 1].votes < newTopChart[moveIndex].votes) {
+                [newTopChart[moveIndex], newTopChart[moveIndex - 1]] = [newTopChart[moveIndex - 1], newTopChart[moveIndex]];
+                moveIndex--;
+              }
+            }
+          });
+      
+          return newTopChart;
+        });
+      }        
+
+
     const fetchSearchResults = async (query) => {
         setIsLoading(true);
         const response = await fetch(`/api/search?query=${query}`);
@@ -67,40 +112,8 @@ const RoomComponent = ({ roomData, socket }) => {
             if (sameClick) {
                 return;
             }
-    
-            // Update the top chart locally
-            setTopChart(prevTopChart => {
-                // Update the decremented track if it exists
-                let newTopChart = prevTopChart.map(t => {
-                    if (t.spotifyId === decrementedTrackId) {
-                        const newVotes = t.votes - 1;
-                        return { ...t, votes: newVotes > 0 ? newVotes : 0 };
-                    }
-                    return t;
-                }).filter(t => t.votes > 0); // Remove only if the votes reach zero
-    
-                // Find the existing track or add a new one with the full information
-                const existingTrack = newTopChart.find(t => t.spotifyId === trackFromSpotify.id);
-    
-                const updatedTrack = {
-                    spotifyId: trackFromSpotify.id,
-                    name: trackFromSpotify.name,
-                    artists: trackFromSpotify.artists.map(artist => artist.name),
-                    albumCoverUrl: trackFromSpotify.album.images[0].url,
-                    votes: existingTrack ? existingTrack.votes + 1 : 1 // Increment or start from 1
-                };
-    
-                // Add or update the incremented track
-                newTopChart = [
-                    ...newTopChart.filter(t => t.spotifyId !== updatedTrack.spotifyId),
-                    updatedTrack
-                ];
-    
-                return newTopChart;
-            });
-    
-            // Emit to the WebSocket server the IDs of the incremented and decremented tracks
-            const tracksToEmit = [
+
+            const trackUpdates = [
                 { track: {
                     spotifyId: trackFromSpotify.id,
                     name: trackFromSpotify.name,
@@ -111,12 +124,14 @@ const RoomComponent = ({ roomData, socket }) => {
             
             // Add the decremented track only if decrementedTrackId is not null
             if (decrementedTrackId) {
-                tracksToEmit.push({ track: { spotifyId: decrementedTrackId }, incremented: false });
+                trackUpdates.push({ track: { spotifyId: decrementedTrackId }, incremented: false });
             }
+
+            updateTopChartState(trackUpdates);
             
             socket.emit('updateTopChart', {
                 roomId: roomData.id,
-                tracks: tracksToEmit
+                tracks: trackUpdates
             });
 
         } else {
@@ -129,51 +144,7 @@ const RoomComponent = ({ roomData, socket }) => {
     useEffect(() => {
         if (socket) {
             const handleTopChartUpdate = tracks => {
-                setTopChart(prevTopChart => {
-                    // Create a copy of the current top chart
-                    let newTopChart = [...prevTopChart];
-    
-                    for (const trackInfo of tracks) {
-                        const { track, incremented } = trackInfo;
-    
-                        // Find the index of the track in the current chart
-                        const trackIndex = newTopChart.findIndex(t => t.spotifyId === track.spotifyId);
-    
-                        if (incremented) {
-                            if (trackIndex !== -1) {
-                                // Increment the existing track's vote count by 1
-                                newTopChart[trackIndex] = {
-                                    ...newTopChart[trackIndex],
-                                    votes: newTopChart[trackIndex].votes + 1
-                                };
-                            } else {
-                                // Add a new track with the full information and 1 vote
-                                newTopChart.push({
-                                    ...track, 
-                                    votes: 1
-                                });
-                            }
-                        } else {
-                            if (trackIndex !== -1) {
-                                // Decrement the existing track's vote count by 1
-                                const decrementedTrack = {
-                                    ...newTopChart[trackIndex],
-                                    votes: newTopChart[trackIndex].votes - 1
-                                };
-    
-                                if (decrementedTrack.votes === 0) {
-                                    // Remove the track from the top chart if votes drop to 0
-                                    newTopChart = newTopChart.filter(t => t.spotifyId !== track.spotifyId);
-                                } else {
-                                    // Update the track with the decremented votes
-                                    newTopChart[trackIndex] = decrementedTrack;
-                                }
-                            }
-                        }
-                    }
-    
-                    return newTopChart;
-                });
+                updateTopChartState(tracks);
             };
     
             socket.on('topChartUpdated', handleTopChartUpdate);

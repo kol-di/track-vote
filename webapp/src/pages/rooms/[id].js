@@ -10,6 +10,9 @@ export async function getServerSideProps(context) {
         return { props: { roomData: null } };
     }
     const data = await res.json();
+    if (data.tracks && data.tracks.length > 0) {
+        data.tracks.sort((a, b) => b.votes - a.votes);
+    }
     return { props: { roomData: data } };
 }
 
