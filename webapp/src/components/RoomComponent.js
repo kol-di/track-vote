@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import debounce from 'lodash/debounce';
 import styles from './RoomComponent.module.css';
-import { trackSchema } from '../schemas/roomSchemas.js';
 import Image from 'next/image';
+import Marquee from "react-fast-marquee";
 
 
 const RoomComponent = ({ roomData, socket }) => {
@@ -261,7 +261,10 @@ const RoomComponent = ({ roomData, socket }) => {
     return (
         <div className={styles.container}>
             <div className={styles.roomNameContainer}>
-                <h1 className={styles.roomName}>{roomData.roomName}</h1>
+                <Marquee>
+                    <h1 className={styles.roomName}>{roomData.roomName}</h1>
+                    <div className={styles.tab}></div>
+                </Marquee>
             </div>
             <div className={styles.subLayer}>
                 <div ref={searchContainerRef} className={styles.searchContainer}>

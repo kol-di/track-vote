@@ -13,13 +13,19 @@
 
 .roomNameContainer {
     text-align: center;
-    padding: 20px;
+    padding-top: 20px;
+    padding-bottom:  20px;
     margin-bottom: 10px;  /* Space between room name and sublayer */
 }
 
 .roomName {
-    color: #0088cc;  /* Blue color for the room name */
+    color: #0088cc;
     margin: 0;
+    text-shadow: rgb(0, 255, 208) 1px 0 10px;
+}
+
+.tab {
+    width: 20px; /* Adjust width as needed */
 }
 
 .subLayer {
