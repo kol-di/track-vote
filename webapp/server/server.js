@@ -5,6 +5,7 @@ const socketIo = require('socket.io');
 const { spotifyAuth } = require('./auth.js');
 const tokenRouter = require('./routes/tokenRouter.js');
 const Room = require('../src/models/Room.js'); // Assuming Room model is required
+const User = require('../src/models/User.js'); // Assuming Room model is required
 const cors = require('cors');
 require('dotenv').config();
 
@@ -88,6 +89,44 @@ app.prepare().then(() => {
         } catch (error) {
             console.error('Error updating top chart:', error);
             socket.emit('error', 'Failed to update top chart');
+        }
+    });
+
+
+    socket.on('deleteTrack', async ({ roomId, trackUpdates }) => {
+        try {
+            const room = await Room.findById(roomId);
+            if (!room) {
+                console.error(`Room with ID ${roomId} not found.`);
+                socket.emit('error', 'Room not found.');
+                return;
+            }
+
+            const trackUpdate = trackUpdates[0]; // Assumption: Only one track is deleted at a time
+            const { track, increment } = trackUpdate;
+            const trackIndex = room.tracks.findIndex(t => t.spotifyId === track.spotifyId);
+            
+            if (trackIndex !== -1) {
+                room.tracks[trackIndex].votes += increment;
+                if (room.tracks[trackIndex].votes <= 0) {
+                    room.tracks.splice(trackIndex, 1);
+                }
+            }
+
+            const userIds = [...room.users, ...room.admins];
+            const users = await User.find({ _id: { $in: userIds }, [`currentVote.${roomId}`]: track.spotifyId });
+
+            for (const user of users) {
+                delete user.currentVote[roomId];
+                await user.save();
+            }
+
+            await room.save();
+
+            socket.to(roomId).emit('topChartUpdated', trackUpdates);
+        } catch (error) {
+            console.error('Error deleting track:', error);
+            socket.emit('error', 'Failed to delete track');
         }
     });
     

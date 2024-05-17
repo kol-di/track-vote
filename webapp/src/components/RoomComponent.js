@@ -21,6 +21,7 @@ const RoomComponent = ({ roomData, socket }) => {
       
           updates.forEach(update => {
             const { track, increment } = update;
+            console.log(track, "decrement", increment);
             const trackIndex = newTopChart.findIndex(t => t.spotifyId === track.spotifyId);
       
             if (trackIndex !== -1) {
@@ -201,6 +202,39 @@ const RoomComponent = ({ roomData, socket }) => {
             return () => socket.off('topChartUpdated', handleTopChartUpdate);
         }
     }, [socket]);
+
+
+    const deleteTrack = async (trackId) => {
+        const response = await fetch(`/api/rooms/${roomData.id}/delete-track`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roomId: roomData.id, trackId })
+        });
+    
+        if (response.ok) {
+            const { decrementedTrackId, deletedTrackVoteCount } = await response.json();
+    
+            const trackUpdates = [
+                { track: { spotifyId: decrementedTrackId }, increment: -deletedTrackVoteCount }
+            ];
+    
+            updateTopChartState(trackUpdates);
+    
+            socket.emit('deleteTrack', {
+                roomId: roomData.id,
+                trackUpdates
+            });
+        } else {
+            console.error('Failed to delete track:', response.statusText);
+        }
+    };
+
+    const handleDeleteTrack = (trackId) => {
+        if (confirm('Are you sure you want to delete this track?')) {
+            deleteTrack(trackId);
+        }
+    };
+    
     
 
     const handleSearchChange = (event) => {
@@ -313,6 +347,7 @@ const RoomComponent = ({ roomData, socket }) => {
                                     <div className={styles.voteCount}>
                                         {track.votes} {/* Display the vote count */}
                                     </div>
+                                    <button onClick={() => handleDeleteTrack(track.spotifyId)}>Delete</button>
                                 </li>
                             ))}
                         </ul>
