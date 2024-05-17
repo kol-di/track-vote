@@ -44,6 +44,7 @@ app.prepare().then(() => {
     });
 
     socket.on('updateTopChart', async ({ roomId, tracks }) => {
+        console.log('updating top chart');
         try {
             const room = await Room.findById(roomId);
             if (!room) {
@@ -54,23 +55,23 @@ app.prepare().then(() => {
     
             // Process each track in the input tracks array
             for (const trackInfo of tracks) {
-                const { track, incremented } = trackInfo;
+                const { track, increment } = trackInfo;
     
-                if (incremented) {
+                if (increment > 0) {
                     // Handle the incremented track
                     let existingTrack = room.tracks.find(t => t.spotifyId === track.spotifyId);
                     if (existingTrack) {
-                        existingTrack.votes += 1;
+                        existingTrack.votes += increment;
                     } else {
                         // Add the new track with 1 vote if it doesn't exist
-                        existingTrack = { ...track, votes: 1 };
+                        existingTrack = { ...track, votes: increment };
                         room.tracks.push(existingTrack);
                     }
-                } else {
+                } else if (increment < 0) {
                     // Handle the decremented track
                     const decrementedTrack = room.tracks.find(t => t.spotifyId === track.spotifyId);
                     if (decrementedTrack) {
-                        decrementedTrack.votes = Math.max(decrementedTrack.votes - 1, 0);
+                        decrementedTrack.votes = Math.max(decrementedTrack.votes + increment, 0);
                         if (decrementedTrack.votes === 0) {
                             room.tracks = room.tracks.filter(t => t.spotifyId !== decrementedTrack.spotifyId);
                         }
