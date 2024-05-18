@@ -120,8 +120,7 @@
     overflow: hidden; /* Prevents overflow issues */
     position: relative; /* Ensure stacking context for swipe effect */
     background-color: #f7f7f7;
-    /* background-color: #fff;  */
-    width: 100%; /* Ensure trackItem spans full width of its container */
+    width: calc(100% - 20px); /* Ensure trackItem spans full width of its container */
 }
 
 .albumImage {
@@ -163,7 +162,8 @@
     width: calc(100% - 20px); /* Adjust the width to account for padding */
     max-height: 66vh; /* 2/3 of the viewport height, adjust as necessary */
     overflow-y: auto;
-    background: white;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    background-color: #f7f7f7;
     border-top: 1px solid #ccc;
     border-radius: 8px;
     padding: 0 10px; /* Padding inside container to prevent lines touching the edges */
