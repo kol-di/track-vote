@@ -85,7 +85,7 @@ app.prepare().then(() => {
     
             // Emit the updated tracks to all other clients in the room
             console.log('Emitting topChartUpdated');
-            socket.to(roomId).emit('topChartUpdated', tracks);
+            socket.broadcast.to(roomId).emit('topChartUpdated', tracks);
         } catch (error) {
             console.error('Error updating top chart:', error);
             socket.emit('error', 'Failed to update top chart');
@@ -123,7 +123,7 @@ app.prepare().then(() => {
 
             await room.save();
 
-            socket.to(roomId).emit('topChartUpdated', trackUpdates);
+            socket.broadcast.to(roomId).emit('topChartUpdated', trackUpdates);
         } catch (error) {
             console.error('Error deleting track:', error);
             socket.emit('error', 'Failed to delete track');
