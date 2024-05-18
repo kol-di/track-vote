@@ -5,60 +5,71 @@ import Image from 'next/image';
 import Marquee from "react-fast-marquee";
 
 
-const RoomComponent = ({ roomData, socket }) => {
+const RoomComponent = ({ roomData, socket, isAdmin }) => {
     const [searchActive, setSearchActive] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [topChart, setTopChart] = useState(roomData.tracks || []);  // Initialize with existing tracks
+    const [topChart, setTopChart] = useState(roomData.tracks || []);
     const searchInputRef = useRef(null);
     const searchContainerRef = useRef(null);
 
 
     const updateTopChartState = (updates) => {
         setTopChart(prevTopChart => {
-          let newTopChart = [...prevTopChart];
-      
-          updates.forEach(update => {
-            const { track, increment } = update;
-            console.log(track, "decrement", increment);
-            const trackIndex = newTopChart.findIndex(t => t.spotifyId === track.spotifyId);
-      
-            if (trackIndex !== -1) {
-              // Track exists, update votes
-              const updatedVotes = newTopChart[trackIndex].votes + increment;
-              newTopChart[trackIndex] = { ...newTopChart[trackIndex], votes: updatedVotes };
-      
-              // Remove track if votes drop to zero
-              if (updatedVotes <= 0) {
-                newTopChart.splice(trackIndex, 1);
-              } else {
-                // Adjust position in sorted array (move up or down)
-                let moveIndex = trackIndex;
-                while (increment > 0 && moveIndex > 0 && newTopChart[moveIndex - 1].votes < newTopChart[moveIndex].votes) {
-                  [newTopChart[moveIndex], newTopChart[moveIndex - 1]] = [newTopChart[moveIndex - 1], newTopChart[moveIndex]];
-                  moveIndex--;
+            let newTopChart = [...prevTopChart];
+            // console.log("Top chart before update", JSON.stringify(newTopChart, null, 2));
+            // console.log("Changes", JSON.stringify(updates, null, 2));
+    
+            updates.forEach(update => {
+                const { track, increment } = update;
+                const trackIndex = newTopChart.findIndex(t => t.spotifyId === track.spotifyId);
+    
+                if (trackIndex !== -1) {
+                    // console.log("updateTopChart: track exists");
+                    // Track exists, update votes
+                    const updatedVotes = newTopChart[trackIndex].votes + increment;
+                    newTopChart[trackIndex] = { ...newTopChart[trackIndex], votes: updatedVotes };
+                    // console.log("updateTopChart: update votes", updatedVotes);
+    
+                    // Remove track if votes drop to zero or below
+                    if (updatedVotes <= 0) {
+                        console.log("updateTopChart: updated votes <= 0");
+                        newTopChart.splice(trackIndex, 1);
+                    } else {
+                        // Adjust position in sorted array (move up or down)
+                        let moveIndex = trackIndex;
+    
+                        // Move up if votes increased
+                        while (moveIndex > 0 && newTopChart[moveIndex - 1].votes < newTopChart[moveIndex].votes) {
+                            [newTopChart[moveIndex], newTopChart[moveIndex - 1]] = [newTopChart[moveIndex - 1], newTopChart[moveIndex]];
+                            moveIndex--;
+                        }
+    
+                        // Move down if votes decreased
+                        while (moveIndex < newTopChart.length - 1 && newTopChart[moveIndex + 1].votes > newTopChart[moveIndex].votes) {
+                            [newTopChart[moveIndex], newTopChart[moveIndex + 1]] = [newTopChart[moveIndex + 1], newTopChart[moveIndex]];
+                            moveIndex++;
+                        }
+                    }
+                } else if (increment > 0) {
+                    // New track, add to chart with initial votes
+                    newTopChart.push({ ...track, votes: increment });
+    
+                    // Move new track to correct position
+                    let moveIndex = newTopChart.length - 1;
+                    while (moveIndex > 0 && newTopChart[moveIndex - 1].votes < newTopChart[moveIndex].votes) {
+                        [newTopChart[moveIndex], newTopChart[moveIndex - 1]] = [newTopChart[moveIndex - 1], newTopChart[moveIndex]];
+                        moveIndex--;
+                    }
                 }
-                while (increment < 0 && moveIndex < newTopChart.length - 1 && newTopChart[moveIndex + 1].votes > newTopChart[moveIndex].votes) {
-                  [newTopChart[moveIndex], newTopChart[moveIndex + 1]] = [newTopChart[moveIndex + 1], newTopChart[moveIndex]];
-                  moveIndex++;
-                }
-              }
-            } else if (increment > 0) {
-              // New track, add to chart
-              newTopChart.push({ ...track, votes: increment });
-              // Move new track to correct position (should start from the bottom as it has 1 vote)
-              let moveIndex = newTopChart.length - 1;
-              while (moveIndex > 0 && newTopChart[moveIndex - 1].votes < newTopChart[moveIndex].votes) {
-                [newTopChart[moveIndex], newTopChart[moveIndex - 1]] = [newTopChart[moveIndex - 1], newTopChart[moveIndex]];
-                moveIndex--;
-              }
-            }
-          });
-      
-          return newTopChart;
+            });
+    
+            // console.log("Top chart after update", JSON.stringify(newTopChart, null, 2));
+            return newTopChart;
         });
-      }        
+    }
+     
 
 
     const fetchSearchResults = async (query) => {
@@ -195,6 +206,7 @@ const RoomComponent = ({ roomData, socket }) => {
     useEffect(() => {
         if (socket) {
             const handleTopChartUpdate = tracks => {
+                console.log('Recieved topChartUpdated from websocket with tracks', tracks);
                 updateTopChartState(tracks);
             };
     
@@ -218,6 +230,7 @@ const RoomComponent = ({ roomData, socket }) => {
                 { track: { spotifyId: decrementedTrackId }, increment: -deletedTrackVoteCount }
             ];
     
+            console.log("Deleting track, local top chart updates:", trackUpdates);
             updateTopChartState(trackUpdates);
     
             socket.emit('deleteTrack', {
@@ -347,7 +360,10 @@ const RoomComponent = ({ roomData, socket }) => {
                                     <div className={styles.voteCount}>
                                         {track.votes} {/* Display the vote count */}
                                     </div>
-                                    <button onClick={() => handleDeleteTrack(track.spotifyId)}>Delete</button>
+                                    <div>{isAdmin ? "admin" : "not admin"}</div>
+                                    {isAdmin && (
+                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteTrack(track.spotifyId); }}>Delete</button>
+                                    )}
                                 </li>
                             ))}
                         </ul>

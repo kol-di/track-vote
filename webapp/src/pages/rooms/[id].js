@@ -13,14 +13,28 @@ export async function getServerSideProps(context) {
     if (data.tracks && data.tracks.length > 0) {
         data.tracks.sort((a, b) => b.votes - a.votes);
     }
+    console.log("got room data", data);
     return { props: { roomData: data } };
 }
 
 const RoomPage = ({ roomData }) => {
     const [socket, setSocket] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         if (!roomData) return;
+
+        const initializeTelegram = () => {
+            if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                const telegramUserId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
+                setIsAdmin(roomData.admins.includes(telegramUserId));
+            }
+            window.Telegram.WebApp.ready();
+        };
+
+        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+            initializeTelegram();
+        }
     
         const newSocket = io(process.env.NEXT_PUBLIC_WEB_APP_BASE_URL, {
             query: { roomId: roomData.id }, 
@@ -45,7 +59,7 @@ const RoomPage = ({ roomData }) => {
     }, [roomData]);
 
     if (!roomData) return <p>Room not found.</p>;
-    return <RoomComponent roomData={roomData} socket={socket} />;
+    return <RoomComponent roomData={roomData} socket={socket} isAdmin={isAdmin} />;
 }
 
 export default RoomPage;
