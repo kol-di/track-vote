@@ -117,6 +117,11 @@
     align-items: center;
     padding: 10px;
     border-bottom: 1px solid #ddd; /* Adds a line separator */
+    overflow: hidden; /* Prevents overflow issues */
+    position: relative; /* Ensure stacking context for swipe effect */
+    /* background-color: #f7f7f7 */
+    background-color: #fff; /* Set background color */
+    width: 100%; /* Ensure trackItem spans full width of its container */
 }
 
 .trackItem:last-child {

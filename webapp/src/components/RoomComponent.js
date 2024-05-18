@@ -3,6 +3,7 @@ import debounce from 'lodash/debounce';
 import styles from './RoomComponent.module.css';
 import Image from 'next/image';
 import Marquee from "react-fast-marquee";
+import SwipeableContainer from './SwipeableContainer';
 
 
 const RoomComponent = ({ roomData, socket, isAdmin }) => {
@@ -354,20 +355,22 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
                     <div className={styles.topChartContainer}>
                         <ul className={styles.trackList}>
                             {topChart.map((track) => (
-                                <li key={track.spotifyId} className={styles.trackItem} onClick={() => updateTopChartFromList(track)}>
-                                    <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
-                                    <div className={styles.trackInfo}>
-                                        <div className={styles.artistName}>{track.artists.join(', ')}</div>
-                                        <div className={styles.trackName}>{track.name}</div>
-                                    </div>
-                                    <div className={styles.voteCount}>
-                                        {track.votes} {/* Display the vote count */}
-                                    </div>
-                                    <div>{isAdmin ? "admin" : "not admin"}</div>
-                                    {isAdmin && (
-                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteTrack(track.spotifyId); }}>Delete</button>
-                                    )}
-                                </li>
+                                <SwipeableContainer key={track.spotifyId} onDelete={() => handleDeleteTrack(track.spotifyId)}>
+                                    <li key={track.spotifyId} className={styles.trackItem} onClick={() => updateTopChartFromList(track)}>
+                                        <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
+                                        <div className={styles.trackInfo}>
+                                            <div className={styles.artistName}>{track.artists.join(', ')}</div>
+                                            <div className={styles.trackName}>{track.name}</div>
+                                        </div>
+                                        <div className={styles.voteCount}>
+                                            {track.votes} {/* Display the vote count */}
+                                        </div>
+                                        {/* <div>{isAdmin ? "admin" : "not admin"}</div> */}
+                                        {/* {isAdmin && (
+                                            <button onClick={(e) => { e.stopPropagation(); handleDeleteTrack(track.spotifyId); }}>Delete</button>
+                                        )} */}
+                                    </li>
+                                </SwipeableContainer>
                             ))}
                         </ul>
                     </div>
