@@ -119,13 +119,9 @@
     border-bottom: 1px solid #ddd; /* Adds a line separator */
     overflow: hidden; /* Prevents overflow issues */
     position: relative; /* Ensure stacking context for swipe effect */
-    /* background-color: #f7f7f7 */
-    background-color: #fff; /* Set background color */
+    background-color: #f7f7f7;
+    /* background-color: #fff;  */
     width: 100%; /* Ensure trackItem spans full width of its container */
-}
-
-.trackItem:last-child {
-    border-bottom: none; /* Removes the separator from the last item */
 }
 
 .albumImage {
