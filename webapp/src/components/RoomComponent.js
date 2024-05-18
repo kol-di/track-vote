@@ -13,6 +13,7 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     const [topChart, setTopChart] = useState(roomData.tracks || []);
     const searchInputRef = useRef(null);
     const searchContainerRef = useRef(null);
+    const resultSelectedRef = useRef(false);
 
 
     const updateTopChartState = (updates) => {
@@ -75,7 +76,7 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     const fetchSearchResults = async (query) => {
         setIsLoading(true);
         const response = await fetch(`/api/search?query=${query}`);
-        if (response.ok) {
+        if (response.ok && !resultSelectedRef.current) {
             const data = await response.json();
             const enhancedTracks = data.tracks.items.map(track => {
                 const existingTrack = topChart.find(t => t.spotifyId === track.id);
@@ -145,6 +146,7 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     };
 
     const updateTopChartFromSpotify = async (trackFromSpotify) => {
+        resultSelectedRef.current = true;
         setSearchResults([]);
     
         console.log('trackFromSpotify inside updateTopChart', trackFromSpotify);
@@ -252,6 +254,7 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
 
     const handleSearchChange = (event) => {
         const query = event.target.value;
+        resultSelectedRef.current = false;
         setSearchTerm(query);
         if (query.length > 0) {
             debouncedSearch(query);
