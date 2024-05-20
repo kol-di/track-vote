@@ -15,6 +15,7 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     const searchInputRef = useRef(null);
     const searchContainerRef = useRef(null);
     const resultSelectedRef = useRef(false);
+    const [swipedTrackId, setSwipedTrackId] = useState(null);
 
 
     const updateTopChartState = (updates) => {
@@ -355,7 +356,13 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
                     <div className={styles.topChartContainer}>
                         <ul className={styles.trackList}>
                             {topChart.map((track) => (
-                                <SwipeableContainer key={track.spotifyId} onDelete={() => handleDeleteTrack(track.spotifyId)}>
+                                <SwipeableContainer 
+                                    key={track.spotifyId}
+                                    isSwiped={swipedTrackId === track.spotifyId}
+                                    onSwipe={() => setSwipedTrackId(track.spotifyId)}
+                                    onDelete={() => handleDeleteTrack(track.spotifyId)}
+                                    onClose={() => setSwipedTrackId(null)}
+                                >
                                     <li key={track.spotifyId} className={styles.trackItem} onClick={() => updateTopChartFromList(track)}>
                                         <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
                                         <div className={styles.trackInfo}>

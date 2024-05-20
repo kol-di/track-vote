@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './SwipeableContainer.module.css';
 
-const SwipeableContainer = ({ children, onDelete }) => {
-    const [isSwiped, setIsSwiped] = useState(false);
+const SwipeableContainer = ({ children, isSwiped, onSwipe, onDelete, onClose }) => {
     const startX = useRef(0);
     const deleteButtonRef = useRef(null);
     const [deleteButtonWidth, setDeleteButtonWidth] = useState(0);
@@ -16,15 +15,11 @@ const SwipeableContainer = ({ children, onDelete }) => {
         const diffX = startX.current - currentX;
 
         if (diffX > 50) {
-            setIsSwiped(true);
+            onSwipe();
         } else if (diffX < -50) {
-            setIsSwiped(false);
+            onClose();
         }
         e.preventDefault(); // Prevent vertical scrolling when swiping horizontally
-    };
-
-    const handleTouchEnd = () => {
-        // Touch end logic can be left empty for now
     };
 
     useEffect(() => {
@@ -38,7 +33,6 @@ const SwipeableContainer = ({ children, onDelete }) => {
             className={`${styles.swipeableContainer} ${isSwiped ? styles.swiped : ''}`}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
         >
             <div
                 className={styles.swipeableContent}
