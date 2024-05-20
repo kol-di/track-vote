@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './SwipeableContainer.module.css';
 
-const SwipeableContainer = ({ children, isSwiped, onSwipe, onDelete, onClose }) => {
+const SwipeableContainer = ({ children, isAdmin, isSwiped, onSwipe, onDelete, onClose }) => {
     const startX = useRef(0);
     const deleteButtonRef = useRef(null);
     const [deleteButtonWidth, setDeleteButtonWidth] = useState(0);
 
     const handleTouchStart = (e) => {
+        if (!isAdmin) return;
         startX.current = e.touches[0].clientX;
     };
 

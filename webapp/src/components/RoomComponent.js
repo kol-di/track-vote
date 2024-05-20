@@ -358,6 +358,7 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
                             {topChart.map((track) => (
                                 <SwipeableContainer 
                                     key={track.spotifyId}
+                                    isAdmin={isAdmin}
                                     isSwiped={swipedTrackId === track.spotifyId}
                                     onSwipe={() => setSwipedTrackId(track.spotifyId)}
                                     onDelete={() => handleDeleteTrack(track.spotifyId)}
