@@ -129,8 +129,46 @@ app.prepare().then(() => {
             socket.emit('error', 'Failed to delete track');
         }
     });
+
+    socket.on('requestLatestData', async ({ roomId }) => {
+        try {
+            const room = await Room.findById(roomId)
+                .populate('admins', '_id')
+                .populate({
+                    path: 'tracks',
+                    select: 'votes spotifyId name artists albumCoverUrl',
+                    options: { sort: { votes: -1 } }
+                });
     
+            if (!room) {
+                console.error(`Room with ID ${roomId} not found.`);
+                socket.emit('error', 'Room not found.');
+                return;
+            }
+
+            room.tracks.sort((a, b) => b.votes - a.votes);
     
+            const response = {
+                id: room._id,
+                roomName: room.name,
+                admins: room.admins.map(admin => admin._id),
+                tracks: room.tracks.map(track => ({
+                    spotifyId: track.spotifyId,
+                    name: track.name,
+                    artists: track.artists,
+                    albumCoverUrl: track.albumCoverUrl,
+                    votes: track.votes
+                }))
+            };
+    
+            console.log('Websocket emmited latest data');
+            socket.emit('latestData', response);
+        } catch (error) {
+            console.error('Error fetching latest data:', error);
+            socket.emit('error', 'Failed to fetch latest data');
+        }
+    });
+
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');

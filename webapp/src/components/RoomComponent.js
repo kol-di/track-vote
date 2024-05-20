@@ -208,14 +208,33 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     
     
     useEffect(() => {
+        const handleTopChartUpdate = tracks => {
+            console.log('Recieved topChartUpdated from websocket with tracks', tracks);
+            updateTopChartState(tracks);
+        };
+
+        const handleLatestData = data => {
+            console.log('Received latestData');
+            setTopChart(data.tracks);
+        };
+
         if (socket) {
-            const handleTopChartUpdate = tracks => {
-                console.log('Recieved topChartUpdated from websocket with tracks', tracks);
-                updateTopChartState(tracks);
-            };
-    
             socket.on('topChartUpdated', handleTopChartUpdate);
-            return () => socket.off('topChartUpdated', handleTopChartUpdate);
+            socket.on('latestData', handleLatestData);
+
+            // Emmit a one-time full tracklist when component mounts
+            if (socket.connected) {
+                socket.emit('requestLatestData', { roomId: roomData.id });
+            } else {
+                socket.on('connect', () => {
+                    socket.emit('requestLatestData', { roomId: roomData.id });
+                });
+            }
+
+            return () => {
+                socket.off('topChartUpdated', handleTopChartUpdate);
+                socket.off('latestData', handleTopChartUpdate);
+            }
         }
     }, [socket]);
 
