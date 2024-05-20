@@ -13,7 +13,6 @@ export async function getServerSideProps(context) {
     if (data.tracks && data.tracks.length > 0) {
         data.tracks.sort((a, b) => b.votes - a.votes);
     }
-    console.log("got room data", data);
     return { props: { roomData: data } };
 }
 
