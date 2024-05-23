@@ -11,6 +11,9 @@ let accessToken, refreshToken;
 
 const spotifyAuth = express();
 
+const setAccessToken = (token) => { accessToken = token; };
+const setRefreshToken = (token) => { refreshToken = token; };
+
 const refreshAccessToken = async () => {
   if (!refreshToken) {
       console.error('No refresh token available.');
@@ -85,5 +88,5 @@ spotifyAuth.get('/callback', async (req, res) => {
 const getAccessToken = () => accessToken;
 
 // Exporting both named and default exports
-module.exports = { getAccessToken, spotifyAuth: spotifyAuth };
+module.exports = { getAccessToken, refreshAccessToken, setAccessToken, setRefreshToken, spotifyAuth: spotifyAuth };
 
