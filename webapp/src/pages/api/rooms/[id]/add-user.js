@@ -3,7 +3,7 @@ import Room from '../../../../models/Room';
 import { ensureUserExists } from '../../../../utils/database';
 
 
-const handler = async (req, res) => {
+export default async function handler(req, res) {
   await connectDB();
 
   if (req.method === 'POST') {
@@ -73,5 +73,3 @@ const handler = async (req, res) => {
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
-
-module.exports = handler;

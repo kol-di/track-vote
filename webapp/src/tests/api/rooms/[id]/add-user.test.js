@@ -1,9 +1,9 @@
-const request = require('supertest');
-const express = require('express');
-const handler = require('../../../../pages/api/rooms/[id]/add-user');
-const Room = require('../../../../models/Room');
-const User = require('../../../../models/User');
-const { ensureUserExists } = require('../../../../utils/database');
+import request from 'supertest';
+import express from 'express'
+import handler from '../../../../pages/api/rooms/[id]/add-user';
+import Room from '../../../../models/Room';
+import User from '../../../../models/User'
+import { ensureUserExists } from '../../../../utils/database';
 
 jest.mock('../../../../utils/database', () => ({
   ensureUserExists: jest.fn()
