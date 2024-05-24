@@ -1,5 +1,5 @@
 import RoomComponent from '../../components/RoomComponent';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
 export async function getServerSideProps(context) {
@@ -16,7 +16,7 @@ export async function getServerSideProps(context) {
     return { props: { roomData: data } };
 }
 
-const RoomPage = ({ roomData }) => {
+const RoomPage = ({ roomData, socketClient = io }) => {
     const [socket, setSocket] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -35,7 +35,7 @@ const RoomPage = ({ roomData }) => {
             initializeTelegram();
         }
     
-        const newSocket = io(process.env.NEXT_PUBLIC_WEB_APP_BASE_URL, {
+        const newSocket = socketClient(process.env.NEXT_PUBLIC_WEB_APP_BASE_URL, {
             query: { roomId: roomData.id }, 
             transports : ["websocket"]
         });
