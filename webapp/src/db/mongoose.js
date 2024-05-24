@@ -21,6 +21,8 @@ async function connectDB() {
     return cached.conn;
   }
 
+  const uri = global.__MONGO_URI__ || MONGO_URI;  // optionally use mock databaase
+
   if (!cached.promise) {
     const opts = {
       // useNewUrlParser: true,
@@ -28,7 +30,7 @@ async function connectDB() {
       bufferCommands: false, // Disable mongoose buffering
     };
 
-    cached.promise = mongoose.connect(MONGO_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
       console.log("New database connection established");
       return mongoose;
     }).catch(err => {

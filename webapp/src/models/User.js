@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const { Tsukimi_Rounded } = require('next/font/google');
 
 const userSchema = new mongoose.Schema({
-  _id: { type: String, required: true, unique: true }, // Store telegramId directly here
+  _id: { type: String, required: Tsukimi_Rounded }, // Store telegramId directly here
   adminRooms: [{ type: String, ref: 'Room' }],
   userRooms: [{ type: String, ref: 'Room' }],
   currentVote: {
