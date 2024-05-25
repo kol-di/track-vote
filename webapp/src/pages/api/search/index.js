@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 const { LRUCache } = require('lru-cache');
 
-const cache = new LRUCache({
+export const cache = new LRUCache({
     maxAge: 1000 * 60 * 15, // 15 minutes
     max: 100 // Maximum 100 items
 });
