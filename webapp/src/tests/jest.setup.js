@@ -1,10 +1,3 @@
-if (typeof global.TextEncoder === 'undefined') {
-  global.TextEncoder = require('util').TextEncoder;
-}
-if (typeof global.TextDecoder === 'undefined') {
-  global.TextDecoder = require('util').TextDecoder;
-}
-
 global.ResizeObserver = class {
   observe() {}
   unobserve() {}
@@ -26,10 +19,7 @@ beforeAll(async () => {
 
   global.__MONGO_URI__ = mongoUri;
   
-  await mongoose.connect(mongoUri, {
-    // useNewUrlParser: true,
-    // useUnifiedTopology: true
-  });
+  await mongoose.connect(mongoUri, {});
 });
 
 afterAll(async () => {
