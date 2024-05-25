@@ -236,7 +236,7 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
                 socket.off('latestData', handleTopChartUpdate);
             }
         }
-    }, [socket]);
+    }, [socket, roomData.id]);
 
 
     const deleteTrack = async (trackId) => {

@@ -16,7 +16,7 @@ export async function getServerSideProps(context) {
     return { props: { roomData: data } };
 }
 
-const RoomPage = ({ roomData, socketClient = io }) => {
+const RoomPage = ({ roomData, socketClient = io}) => {
     const [socket, setSocket] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -55,7 +55,7 @@ const RoomPage = ({ roomData, socketClient = io }) => {
             newSocket.close();
             console.log('Disconnected Socket.IO');
         };
-    }, [roomData]);
+    }, [roomData, socketClient]);
 
     if (!roomData) return <p>Room not found.</p>;
     return <RoomComponent roomData={roomData} socket={socket} isAdmin={isAdmin} />;
