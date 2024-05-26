@@ -2,12 +2,8 @@ import mongoose from 'mongoose';
 import '../models/Room';
 import '../models/User';
 
-const MONGO_URI = process.env.MONGO_URI;
-console.log("Using MONGO_URI:", MONGO_URI);
 
-if (!MONGO_URI) {
-  throw new Error('Please define the MONGO_URI environment variable inside .env.local');
-}
+const MONGO_URI = process.env.MONGO_URI;
 
 // Using a global variable to store the cache.
 if (!global._mongoConnCache) {
@@ -23,6 +19,10 @@ async function connectDB() {
   }
 
   const uri = global.__MONGO_URI__ || MONGO_URI;  // optionally use mock databaase
+  if (!uri) {
+    throw new Error('No MongoDB URI supplied');
+  }
+  console.log("Using MongoDB URI:", uri);
 
   if (!cached.promise) {
     const opts = {
