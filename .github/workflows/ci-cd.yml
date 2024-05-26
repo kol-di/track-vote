@@ -53,6 +53,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Decode and save configuration files
+        run: |
+          echo ${{ secrets.CONF_INI_BASE64 }} | base64 -d > Bot/conf.ini
+          echo ${{ secrets.ENV_BASE64 }} | base64 -d > webapp/.env
+
       - name: Build and push Docker images
         run: |
           docker-compose -f docker-compose.dev.yml build
