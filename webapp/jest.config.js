@@ -10,5 +10,12 @@ module.exports = {
     transform: {
       '^.+\\.(js|jsx)?$': ['babel-jest', { configFile: './babel.config.jest.js' }],
     },
+    reporters: [
+      "default",
+      ["jest-junit", {
+        outputDirectory: "test-results",
+        outputName: "results.xml"
+      }]
+    ]
   };
   
