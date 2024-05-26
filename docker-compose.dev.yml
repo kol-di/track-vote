@@ -1,5 +1,6 @@
 services:
   webapp:
+    image: koldi/trackvote_webapp:latest
     build:
       context: ./webapp
       dockerfile: dev.Dockerfile
@@ -20,6 +21,7 @@ services:
       start_period: 5s
 
   bot:
+    image: koldi/trackvote_bot:latest
     build:
       context: ./Bot
       dockerfile: dev.Dockerfile
