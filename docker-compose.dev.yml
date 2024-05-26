@@ -1,0 +1,37 @@
+services:
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./webapp:/usr/src/app
+      - shared-volume:/usr/src/shared
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+      - "27017:27017"
+    command: ["./start.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/src/shared/localtunnel_url.txt ] || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  bot:
+    build:
+      context: ./Bot
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./Bot:/usr/src/app
+      - shared-volume:/usr/src/shared
+    depends_on:
+      - webapp
+    environment:
+      - LOCALTUNNEL_FILE_PATH=/usr/src/shared/localtunnel_url.txt
+      - PYTHONUNBUFFERED=0
+    command: ["./update_and_start.sh"]
+
+volumes:
+  shared-volume:

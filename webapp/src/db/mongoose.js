@@ -3,6 +3,7 @@ import '../models/Room';
 import '../models/User';
 
 const MONGO_URI = process.env.MONGO_URI;
+console.log("Using MONGO_URI:", MONGO_URI);
 
 if (!MONGO_URI) {
   throw new Error('Please define the MONGO_URI environment variable inside .env.local');
@@ -25,8 +26,6 @@ async function connectDB() {
 
   if (!cached.promise) {
     const opts = {
-      // useNewUrlParser: true,
-      // useUnifiedTopology: true,
       bufferCommands: false, // Disable mongoose buffering
     };
 
