@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "docker-compose.dev.yml"
-          target: "/root/trackvote/trackvote"
+          target: "/root/trackvote"
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@master
@@ -79,7 +79,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /root/trackvote/trackvote
+            cd /root/trackvote
             docker-compose -f docker-compose.dev.yml down
             docker-compose -f docker-compose.dev.yml pull
             docker-compose -f docker-compose.dev.yml up -d
