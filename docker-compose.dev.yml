@@ -5,7 +5,6 @@ services:
       context: ./webapp
       dockerfile: dev.Dockerfile
     volumes:
-      - ./webapp:/usr/src/app
       - shared-volume:/usr/src/shared
     environment:
       - NODE_ENV=development
@@ -26,7 +25,6 @@ services:
       context: ./Bot
       dockerfile: dev.Dockerfile
     volumes:
-      - ./Bot:/usr/src/app
       - shared-volume:/usr/src/shared
     depends_on:
       - webapp

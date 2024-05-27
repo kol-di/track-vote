@@ -13,7 +13,10 @@ RUN npm install
 # # Copy the rest of the application code
 # COPY . .
 COPY tailwind.config.js postcss.config.mjs next.config.mjs jsconfig.json jest*.js babel.config.jest.js \
-    .eslintrc.json .env src server public ./
+    .eslintrc.json .env ./
+COPY src ./src
+COPY server ./server
+COPY public ./public
 
 # Install localtunnel globally
 RUN npm install -g localtunnel

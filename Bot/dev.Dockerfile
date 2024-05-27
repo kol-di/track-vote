@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # # Copy the rest of the application code
 # COPY . .
-COPY main.py conf.ini bot ./
+COPY main.py conf.ini ./
+COPY bot ./bot
 
 # Copy the update_and_start.sh script
 COPY update_and_start.sh ./
