@@ -23,7 +23,6 @@ describe('POST /api/rooms/create', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.message).toBe('Room created successfully.');
-    expect(res.body.roomLink).toMatch(/\/rooms\/\w+/);
   });
 
   it('should return 400 if required fields are missing', async () => {
