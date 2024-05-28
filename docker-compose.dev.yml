@@ -31,6 +31,7 @@ services:
     environment:
       - LOCALTUNNEL_FILE_PATH=/usr/src/shared/localtunnel_url.txt
       - PYTHONUNBUFFERED=0
+      - WEBAPP_URL=http://webapp:3000
     command: ["./update_and_start.sh"]
 
 volumes:

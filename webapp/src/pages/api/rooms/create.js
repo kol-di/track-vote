@@ -30,11 +30,10 @@ export default async function handler(req, res) {
             await user.save();
             console.log('Added room to users room list inside /api/rooms/create');
 
-            // Define base URL manually or via environment variables
-            const baseURL = process.env.NEXT_PUBLIC_WEB_APP_BASE_URL; // Example: 'https://myapp.com'
-            const roomLink = `${baseURL}/rooms/${room._id}`;
+            // Return id for created room
+            const roomId = room._id;
 
-            res.status(201).json({ roomLink, message: 'Room created successfully.' });
+            res.status(201).json({ roomId, message: 'Room created successfully.' });
         } catch (error) {
             res.status(500).json({ message: 'Internal server error', error: error.message });
         }

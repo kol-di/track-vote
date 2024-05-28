@@ -12,7 +12,7 @@ echo $LT_URL > /usr/src/shared/localtunnel_url.txt
 export LOCALTUNNEL_URL=$LT_URL
 
 # Update the web app .env file with the new LocalTunnel URL
-sed -i "s|NEXT_PUBLIC_WEB_APP_BASE_URL=.*|NEXT_PUBLIC_WEB_APP_BASE_URL=$LT_URL|g" .env
+sed -i "s|PUBLIC_URL=.*|PUBLIC_URL=$LT_URL|g" .env
 
 # Start the Node.js application
 npm run dev

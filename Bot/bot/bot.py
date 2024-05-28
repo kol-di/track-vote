@@ -4,7 +4,7 @@ from bot.webapp_api.api import WebAppApi, ApiStatus
 from bot.config import read_config
 from bot.utils.encrypt_utils import EncryptManager
 from bot.utils.chat_utils import button_list
-import asyncio
+import os
 
 
 # Configuration
@@ -13,12 +13,14 @@ API_ID = config['TELEGRAM']['API_ID']
 API_HASH = config['TELEGRAM']['API_HASH']
 BOT_TOKEN = config['TELEGRAM']['BOT_TOKEN']
 BOT_USERNAME = config['TELEGRAM']['BOT_USERNAME']
-BASE_URL = config['WEBAPP']['BASE_URL']
+
+BASE_URL = config['WEBAPP']['BASE_URL']         # URL on which telegram mini app is served
+WEBAPP_URL = os.getenv('WEBAPP_URL', BASE_URL)  # use docker network, fallback to global URL
 
 # Utility and API initialization
 client = TelegramClient('anon', api_id=API_ID, api_hash=API_HASH)
 encrypt_manager = EncryptManager()
-api = WebAppApi(BASE_URL)
+api = WebAppApi(WEBAPP_URL)
 
 # Callback prefixes
 ADMIN_LINK_PREFIX = "adminLink:"
@@ -45,7 +47,8 @@ async def create_new_room(event):
     if (room_name is not None) and (room_name not in registered_commands):
         response = await api.new_room(sender.id, room_name)
         if response['status'] == ApiStatus.SUCCESS:
-            room_link = response['data']
+            room_id = response['data']
+            room_link = f"{BASE_URL}/rooms/{room_id}"
             room_link_btn = types.KeyboardButtonWebView(room_name, room_link)
             await event.respond("**Войти в комнату:**", buttons=[room_link_btn])
         else:

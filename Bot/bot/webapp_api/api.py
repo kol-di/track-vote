@@ -45,7 +45,7 @@ class WebAppApi:
         status, data = await self._perform_request("post", "/api/rooms/create", json=payload, headers=headers)
         match status:
             case ApiStatus.SUCCESS:
-                return {"status": ApiStatus.SUCCESS, "data": data.get('roomLink')}
+                return {"status": ApiStatus.SUCCESS, "data": data.get('roomId')}
             case ApiStatus.ERROR:
                 return {"status": ApiStatus.ERROR, "data": None}
 

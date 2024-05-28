@@ -1,11 +1,14 @@
 import RoomComponent from '../../components/RoomComponent';
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
+import absoluteUrl from 'next-absolute-url';
+
 
 export async function getServerSideProps(context) {
+    const { req } = context;
+    const { origin } = absoluteUrl(req);
     const { id } = context.params;
-    const baseUrl = process.env.BASE_URL;
-    const res = await fetch(`${baseUrl}/api/rooms/${id}`);
+    const res = await fetch(`${origin}/api/rooms/${id}`);
     if (!res.ok) {
         return { props: { roomData: null } };
     }
@@ -35,7 +38,7 @@ const RoomPage = ({ roomData, socketClient = io}) => {
             initializeTelegram();
         }
     
-        const newSocket = socketClient(process.env.NEXT_PUBLIC_WEB_APP_BASE_URL, {
+        const newSocket = socketClient(process.env.PUBLIC_URL, {
             query: { roomId: roomData.id }, 
             transports : ["websocket"]
         });
