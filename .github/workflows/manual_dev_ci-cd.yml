@@ -1,12 +1,7 @@
-name: CI/CD Pipeline
+name: Manual Dev CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - webapp-dev
-  pull_request:
-    branches:
-      - webapp-dev
+  workflow_dispatch:
 
 jobs:
   build:
