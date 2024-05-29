@@ -4,10 +4,10 @@ name: Manual Dev CI/CD Pipeline
 on:
   push:
     branches:
-      - webapp-dev
+      - server-bugfix
   pull_request:
     branches:
-      - webapp-dev
+      - server-bugfix
 
 jobs:
   build:

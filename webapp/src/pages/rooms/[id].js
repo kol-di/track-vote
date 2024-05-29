@@ -5,9 +5,11 @@ import absoluteUrl from 'next-absolute-url';
 
 
 export async function getServerSideProps(context) {
+    console.log('Inside getServerSideProps');
     const { req } = context;
     const { origin } = absoluteUrl(req);
     const { id } = context.params;
+    console.log('Will fetch data at origin', origin);
     const res = await fetch(`${origin}/api/rooms/${id}`);
     if (!res.ok) {
         return { props: { roomData: null } };
@@ -16,6 +18,7 @@ export async function getServerSideProps(context) {
     if (data.tracks && data.tracks.length > 0) {
         data.tracks.sort((a, b) => b.votes - a.votes);
     }
+    console.log('about to return roomData');
     return { props: { roomData: data } };
 }
 
@@ -35,14 +38,18 @@ const RoomPage = ({ roomData, socketClient = io}) => {
         };
 
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+            console.log('about to initalise telegram');
             initializeTelegram();
+            console.log('Initialised telegram');
         }
     
+        console.log('About to create new socket client, public url is', NEXT_PUBLIC_URL);
         const newSocket = socketClient(process.env.NEXT_PUBLIC_URL, {
             path: '/ws',
             query: { roomId: roomData.id }, 
             transports : ["websocket"]
         });
+        console.log('Created new socekt client');
     
         newSocket.on('connect', () => {
             console.log('Connected to Socket.IO');
