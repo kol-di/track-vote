@@ -10,7 +10,7 @@ export async function getServerSideProps(context) {
     const { origin } = absoluteUrl(req);
     const { id } = context.params;
     console.log('Will fetch data at origin', origin);
-    const res = await fetch(`${origin}/api/rooms/${id}`);
+    const res = await fetch(`http://localhost:3000/api/rooms/${id}`);
     if (!res.ok) {
         return { props: { roomData: null } };
     }
