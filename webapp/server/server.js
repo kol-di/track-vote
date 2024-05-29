@@ -27,8 +27,9 @@ app.prepare().then(() => {
   const httpServer = createServer(server); // Create an HTTP server
   const io = socketIo(httpServer, {
     transports: ['websocket'],
+    path: '/ws',
     cors: {
-      origin: process.env.PUBLIC_URL, // Use the environment variable
+      origin: process.env.NEXT_PUBLIC_URL, // Use the environment variable
       methods: ["GET", "POST"],
       allowedHeaders: ["Content-Type"],
       credentials: true

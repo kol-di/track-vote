@@ -38,7 +38,8 @@ const RoomPage = ({ roomData, socketClient = io}) => {
             initializeTelegram();
         }
     
-        const newSocket = socketClient(process.env.PUBLIC_URL, {
+        const newSocket = socketClient(process.env.NEXT_PUBLIC_URL, {
+            path: '/ws',
             query: { roomId: roomData.id }, 
             transports : ["websocket"]
         });
