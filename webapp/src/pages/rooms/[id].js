@@ -43,7 +43,7 @@ const RoomPage = ({ roomData, socketClient = io}) => {
             console.log('Initialised telegram');
         }
     
-        console.log('About to create new socket client, public url is', NEXT_PUBLIC_URL);
+        console.log('About to create new socket client, public url is', process.env.NEXT_PUBLIC_URL);
         const newSocket = socketClient(process.env.NEXT_PUBLIC_URL, {
             path: '/ws',
             query: { roomId: roomData.id }, 
