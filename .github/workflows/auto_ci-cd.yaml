@@ -91,6 +91,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /root/trackvote
+            docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
             docker-compose -f docker-compose.yml down -v
             docker-compose -f docker-compose.yml pull
             docker-compose -f docker-compose.yml up -d
