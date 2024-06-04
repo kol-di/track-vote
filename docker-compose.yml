@@ -26,7 +26,7 @@ services:
     depends_on:
       - webapp
     environment:
-      - PYTHONUNBUFFERED=0
+      - PYTHONUNBUFFERED=1
       - WEBAPP_URL=http://webapp:3000
     command: ["python3", "main.py"]
 
