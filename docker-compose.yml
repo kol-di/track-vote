@@ -16,6 +16,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    env_file:
+      - path: ./webapp/.env
+        required: true
 
   bot:
     image: koldi/trackvote_bot:latest

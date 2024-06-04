@@ -13,7 +13,7 @@ RUN npm install
 # # Copy the rest of the application code
 # COPY . .
 COPY tailwind.config.js postcss.config.mjs next.config.mjs jsconfig.json jest*.js babel.config.jest.js \
-    .eslintrc.json .env healthcheck.js ./
+    .eslintrc.json healthcheck.js ./
 COPY src ./src
 COPY server ./server
 COPY public ./public
