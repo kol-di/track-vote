@@ -1,5 +1,7 @@
 from aiohttp import ClientSession, ClientTimeout, ClientResponseError, ClientError
 from enum import Enum
+import jwt
+import time
 
 
 class ApiStatus(Enum):
@@ -8,10 +10,12 @@ class ApiStatus(Enum):
 
 
 class WebAppApi:
-    def __init__(self, base_url):
+    def __init__(self, base_url, jwt_payload):
         self._base_url = base_url
         self.session = None
-
+        self.jwt_token = None
+        self.jwt_token_expiry = None
+        self.jwt_payload = jwt_payload
 
     async def start_session(self):
         if not self.session or self.session.closed:
@@ -23,11 +27,15 @@ class WebAppApi:
 
     async def _perform_request(self, method, endpoint, **kwargs):
         await self.start_session()
+        await self.ensure_token()
+
+        headers = kwargs.pop('headers', {})
+        headers.update({"Authorization": f"Bearer {self.jwt_token}"})
         req_url = f'{self._base_url}{endpoint}'
         print(f'Sending {method.upper()} to {req_url}')
 
         try:
-            async with self.session.request(method, req_url, **kwargs) as response:
+            async with self.session.request(method, req_url, headers=headers, **kwargs) as response:
                 response.raise_for_status()
                 data = await response.json()
                 return ApiStatus.SUCCESS, data
@@ -102,3 +110,23 @@ class WebAppApi:
                 return {"status": ApiStatus.SUCCESS, "exists": data.get('exists', False), "name": data.get('roomName')}
             case ApiStatus.ERROR:
                 return {"status": ApiStatus.ERROR, "exists": False}
+            
+    async def set_new_token(self):
+        body = {"payload": self.jwt_payload}
+        async with self.session.post(f"{self._base_url}/jwt-auth/token", json=body) as response:
+            try:
+                response.raise_for_status()
+                data = await response.json()
+                self.jwt_token = data['token']
+
+                decoded = jwt.decode(self.jwt_token, options={"verify_signature": False})
+                self.jwt_token_expiry = decoded['exp']
+            except Exception:
+                raise Exception("Failed to set new JWT token")
+
+
+    async def ensure_token(self):
+        current_time = int(time.time())
+        if not self.jwt_token or (current_time + 30) >= self.jwt_token_expiry:
+            print('Refreshing JWT token')
+            await self.set_new_token()

@@ -4,15 +4,33 @@ const { createServer } = require('http');
 const socketIo = require('socket.io');
 const { spotifyAuth } = require('./auth.js');
 const tokenRouter = require('./routes/tokenRouter.js');
-const Room = require('../src/models/Room.js'); // Assuming Room model is required
-const User = require('../src/models/User.js'); // Assuming Room model is required
-const cors = require('cors');
+const Room = require('../src/models/Room.js'); 
+const User = require('../src/models/User.js'); 
+const { generateToken, verifyToken } = require('./jwtUtils');
 require('dotenv').config();
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+function authenticate(req, res, next) {
+    const token = req.headers['authorization']?.split(' ')[1];
+  
+    if (token) {
+      try {
+        const payload = verifyToken(token);
+        if (payload) {
+          req.user = payload; // Attach user info to request
+          return next();
+        }
+      } catch (error) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+    }
+    else {
+        return res.status(401).json({ message: 'No auth token' })
+    }
+  }
 
 function onlyLocalRequests(req, res, next) {
   if (req.hostname === 'localhost' || req.ip === '127.0.0.1' || req.ip === '::1') {
@@ -35,6 +53,21 @@ app.prepare().then(() => {
       credentials: true
     }
   });
+
+  // JWT authentication route for the bot
+  server.use('/jwt-auth/token', express.raw({ type: '*/*', limit: '10mb' }));
+  server.post('/jwt-auth/token', (req, res) => {
+    console.log("Auth received body", JSON.parse(req.body));
+    const { payload } = JSON.parse(req.body);
+    const token = generateToken(payload);
+    return res.json({ token });
+  });
+
+  // routes used by the bot require JWT auth
+  server.use('/api/users/:tid', authenticate);
+  server.use('/api/rooms/:id/add-user', authenticate);
+  server.use('/api/rooms/:id/exists', authenticate);
+  
 
   // Setup WebSocket connections
   io.on('connection', socket => {

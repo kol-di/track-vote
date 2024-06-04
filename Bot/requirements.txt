@@ -16,6 +16,7 @@ pyasn1==0.6.0
 pycparser==2.22
 pyinstaller==6.3.0
 pyinstaller-hooks-contrib==2023.12
+PyJWT==2.8.0
 pywin32-ctypes==0.2.2
 requests==2.31.0
 rsa==4.9

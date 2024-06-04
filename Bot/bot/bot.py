@@ -20,7 +20,7 @@ WEBAPP_URL = os.getenv('WEBAPP_URL', BASE_URL)  # use docker network, fallback t
 # Utility and API initialization
 client = TelegramClient('anon', api_id=API_ID, api_hash=API_HASH)
 encrypt_manager = EncryptManager()
-api = WebAppApi(WEBAPP_URL)
+api = WebAppApi(WEBAPP_URL, jwt_payload=API_ID)
 
 # Callback prefixes
 ADMIN_LINK_PREFIX = "adminLink:"
