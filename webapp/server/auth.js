@@ -1,9 +1,9 @@
-const dotenv = require('dotenv');
 const express = require('express');
 const fetch = require('node-fetch');
+if (process.env.NODE_ENV === 'development') {
+  require('dotenv').config();
+}
 
-
-dotenv.config();
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;

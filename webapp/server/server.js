@@ -7,7 +7,10 @@ const tokenRouter = require('./routes/tokenRouter.js');
 const Room = require('../src/models/Room.js'); 
 const User = require('../src/models/User.js'); 
 const { generateToken, verifyToken } = require('./jwtUtils');
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+  }
+
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
