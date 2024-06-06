@@ -25,7 +25,7 @@ async function fetchData(url, headers) {
             return fetchData(url, headers); // Retry the request
         }
         if (!response.ok) {
-            throw new Error(`HTTP status ${response.status}`);
+            throw new Error(`HTTP status ${response.status} ${response.statusText}`);
         }
         const text = await response.text();  // First get response as text to check if it's empty
         try {
