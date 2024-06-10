@@ -27,6 +27,7 @@
     background-color: red;
     color: white;
     border: none;
+    border-radius: 12px;
     padding: 10px;
     cursor: pointer;
     height: 100%;

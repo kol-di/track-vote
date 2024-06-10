@@ -117,6 +117,7 @@
     align-items: center;
     padding: 10px;
     border-bottom: 1px solid #ddd; /* Adds a line separator */
+    border-radius: 10px;
     overflow: hidden; /* Prevents overflow issues */
     position: relative; /* Ensure stacking context for swipe effect */
     background-color: #f7f7f7;
@@ -199,4 +200,53 @@
     font-size: 0.9em; /* Slightly smaller font size */
     font-weight: bold; /* Make the font bold */
     color: #333; /* Dark grey color for text */
+}
+
+/* New styles for glowing border effect */
+.votedTrack {
+    position: relative;
+    overflow: hidden; /* Ensure the glow effect does not overflow the container */
+    border-radius: 10px; /* Ensure the same border radius as the glow effect */
+}
+
+.votedTrack:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    filter: blur(10px); /* Adjust blur as needed */
+    background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
+    animation: rotate 4s linear infinite;
+    z-index: 0;
+    /* z-index: 1000; */
+}
+
+.votedTrack:after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border-radius: 7px;
+    background: #f7f7f7;
+    z-index: 2;
+    /* z-index: 1000; */
+}
+
+.innerContent {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Ensure it spans the full width of the list item */
+    position: relative;
+    z-index: 3; /* Ensure this is above the pseudo-elements */
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(1turn);
+    }
 }

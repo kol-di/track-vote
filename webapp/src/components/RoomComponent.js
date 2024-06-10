@@ -16,29 +16,34 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     const searchContainerRef = useRef(null);
     const resultSelectedRef = useRef(false);
     const [swipedTrackId, setSwipedTrackId] = useState(null);
+    const [currentVoteId, setCurrentVoteId] = useState(null);
 
 
     const updateTopChartState = (updates) => {
         setTopChart(prevTopChart => {
             let newTopChart = [...prevTopChart];
-            // console.log("Top chart before update", JSON.stringify(newTopChart, null, 2));
-            // console.log("Changes", JSON.stringify(updates, null, 2));
     
             updates.forEach(update => {
                 const { track, increment } = update;
                 const trackIndex = newTopChart.findIndex(t => t.spotifyId === track.spotifyId);
     
                 if (trackIndex !== -1) {
-                    // console.log("updateTopChart: track exists");
                     // Track exists, update votes
                     const updatedVotes = newTopChart[trackIndex].votes + increment;
                     newTopChart[trackIndex] = { ...newTopChart[trackIndex], votes: updatedVotes };
-                    // console.log("updateTopChart: update votes", updatedVotes);
     
                     // Remove track if votes drop to zero or below
                     if (updatedVotes <= 0) {
                         console.log("updateTopChart: updated votes <= 0");
                         newTopChart.splice(trackIndex, 1);
+                        
+                        setCurrentVoteId(currentVoteId => {
+                            if (track.spotifyId === currentVoteId) {
+                                return null;
+                            }
+                            return currentVoteId;
+                        });
+
                     } else {
                         // Adjust position in sorted array (move up or down)
                         let moveIndex = trackIndex;
@@ -126,6 +131,10 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
                 return;
             }
 
+            console.log('currentVoteId was', currentVoteId);
+            setCurrentVoteId(trackFromList.spotifyId);
+            console.log('currentVoteId is now', currentVoteId);
+
             const trackUpdates = [
                 { track: { ...trackFromList }, increment: 1 }
             ];
@@ -178,6 +187,8 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
             if (sameClick) {
                 return;
             }
+
+            setCurrentVoteId(trackFromSpotify.id);
 
             const trackUpdates = [
                 { track: {
@@ -255,6 +266,13 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     
             console.log("Deleting track, local top chart updates:", trackUpdates);
             updateTopChartState(trackUpdates);
+
+            setCurrentVoteId(currentVoteId => {
+                if (decrementedTrackId === currentVoteId) {
+                    return null;
+                }
+                return currentVoteId;
+            });
     
             socket.emit('deleteTrack', {
                 roomId: roomData.id,
@@ -383,19 +401,21 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
                                     onDelete={() => handleDeleteTrack(track.spotifyId)}
                                     onClose={() => setSwipedTrackId(null)}
                                 >
-                                    <li key={track.spotifyId} className={styles.trackItem} onClick={() => updateTopChartFromList(track)}>
-                                        <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
-                                        <div className={styles.trackInfo}>
-                                            <div className={styles.artistName}>{track.artists.join(', ')}</div>
-                                            <div className={styles.trackName}>{track.name}</div>
+                                    <li key={track.spotifyId} className={`${styles.trackItem} ${track.spotifyId === currentVoteId ? styles.votedTrack : ''}`} onClick={() => updateTopChartFromList(track)}>
+                                        <div className={styles.innerContent}>
+                                            <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
+                                            <div className={styles.trackInfo}>
+                                                <div className={styles.artistName}>{track.artists.join(', ')}</div>
+                                                <div className={styles.trackName}>{track.name}</div>
+                                            </div>
+                                            <div className={styles.voteCount}>
+                                                {track.votes} {/* Display the vote count */}
+                                            </div>
+                                            {/* <div>{isAdmin ? "admin" : "not admin"}</div> */}
+                                            {/* {isAdmin && (
+                                                <button onClick={(e) => { e.stopPropagation(); handleDeleteTrack(track.spotifyId); }}>Delete</button>
+                                            )} */}
                                         </div>
-                                        <div className={styles.voteCount}>
-                                            {track.votes} {/* Display the vote count */}
-                                        </div>
-                                        {/* <div>{isAdmin ? "admin" : "not admin"}</div> */}
-                                        {/* {isAdmin && (
-                                            <button onClick={(e) => { e.stopPropagation(); handleDeleteTrack(track.spotifyId); }}>Delete</button>
-                                        )} */}
                                     </li>
                                 </SwipeableContainer>
                             ))}
