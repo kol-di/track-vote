@@ -1,6 +1,6 @@
 const express = require('express');
 const fetch = require('node-fetch');
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
@@ -55,6 +55,9 @@ const refreshAccessToken = async () => {
 
 
 spotifyAuth.get('/login', (req, res) => {
+  console.log(CLIENT_ID);
+  console.log(process.env.SPOTIFY_CLIENT_ID);
+  console.log(process.env.NODE_ENV);
   const scope = 'user-read-private user-read-email';
   res.redirect(`https://accounts.spotify.com/authorize?response_type=code&client_id=${CLIENT_ID}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI)}`);
 });
