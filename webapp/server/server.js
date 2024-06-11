@@ -67,7 +67,9 @@ app.prepare().then(() => {
   });
 
   // routes used by the bot require JWT auth
-  server.use('/api/users/:tid', authenticate);
+  server.use('/api/users/:tid/admin-rooms', authenticate);
+  server.use('/api/users/:tid/user-rooms', authenticate);
+  server.use('/api/users/:tid/create', authenticate);
   server.use('/api/rooms/:id/add-user', authenticate);
   server.use('/api/rooms/:id/exists', authenticate);
   

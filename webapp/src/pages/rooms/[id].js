@@ -19,14 +19,28 @@ export async function getServerSideProps(context) {
 const RoomPage = ({ roomData, socketClient = io}) => {
     const [socket, setSocket] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [currentVoteId, setCurrentVoteId] = useState(null);
 
     useEffect(() => {
         if (!roomData) return;
 
-        const initializeTelegram = () => {
+        const initializeTelegram = async () => {
             if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
                 const telegramUserId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
                 setIsAdmin(roomData.admins.includes(telegramUserId));
+
+                // Fetch the current vote for the user
+                try {
+                    const response = await fetch(`/api/users/${telegramUserId}/currentVote?telegramId=${telegramUserId}&roomId=${roomData.id}`);
+                    const data = await response.json();
+
+                    if (response.ok && data.spotifyId) {
+                        setCurrentVoteId(data.spotifyId);
+                        console.log('received currentVoteId from api', data.spotifyId);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch current vote:', error);
+                }
             }
             window.Telegram.WebApp.ready();
         };
@@ -61,7 +75,7 @@ const RoomPage = ({ roomData, socketClient = io}) => {
     }, [roomData, socketClient]);
 
     if (!roomData) return <p>Room not found.</p>;
-    return <RoomComponent roomData={roomData} socket={socket} isAdmin={isAdmin} />;
+    return <RoomComponent roomData={roomData} socket={socket} isAdmin={isAdmin} latestVoteId={currentVoteId} />;
 }
 
 export default RoomPage;

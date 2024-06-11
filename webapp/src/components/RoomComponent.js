@@ -6,7 +6,7 @@ import Marquee from "react-fast-marquee";
 import SwipeableContainer from './SwipeableContainer';
 
 
-const RoomComponent = ({ roomData, socket, isAdmin }) => {
+const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
     const [searchActive, setSearchActive] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -16,8 +16,12 @@ const RoomComponent = ({ roomData, socket, isAdmin }) => {
     const searchContainerRef = useRef(null);
     const resultSelectedRef = useRef(false);
     const [swipedTrackId, setSwipedTrackId] = useState(null);
-    const [currentVoteId, setCurrentVoteId] = useState(null);
+    const [currentVoteId, setCurrentVoteId] = useState(latestVoteId);
 
+    
+    useEffect(() => {
+        setCurrentVoteId(latestVoteId);
+      }, [latestVoteId]);
 
     const updateTopChartState = (updates) => {
         setTopChart(prevTopChart => {
