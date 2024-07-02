@@ -1,0 +1,12 @@
+/* globals.css */
+html, body {
+    height: auto;  
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;  
+}
+
+#__next {
+    height: 100%;  
+    overflow: auto;  
+}

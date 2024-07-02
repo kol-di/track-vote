@@ -167,3 +167,9 @@ pids
 
 # configs
 *.ini
+
+# nodejs
+node_modules/
+
+# encryption
+*encryption_key.txt

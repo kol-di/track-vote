@@ -1,0 +1,81 @@
+name: Manual Dev CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.13'
+
+      - name: Install dependencies
+        working-directory: webapp
+        run: npm install
+
+      - name: Run tests
+        working-directory: webapp
+        run: npm run test
+  
+      - name: Archive test results
+        if: always()  # Always run this step to capture results even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: webapp/test-results/results.xml
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Decode and save configuration files
+        run: |
+          echo ${{ secrets.CONF_INI_BASE64 }} | base64 -d > Bot/conf.ini
+          echo ${{ secrets.ENV_BASE64 }} | base64 -d > webapp/.env
+
+      - name: Build and push Docker images
+        run: |
+          docker-compose -f docker-compose.dev.yml build
+          docker-compose -f docker-compose.dev.yml push
+
+      - name: Upload docker-compose.dev.yml to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.dev.yml"
+          target: "/root/trackvote"
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /root/trackvote
+            docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
+            docker-compose -f docker-compose.dev.yml down -v
+            docker-compose -f docker-compose.dev.yml pull
+            docker-compose -f docker-compose.dev.yml up -d

@@ -1,0 +1,252 @@
+/* RoomComponent.module.css */
+.container {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensures it covers at least the full viewport height */
+    height: auto; /* Allows the container to grow as needed */
+    padding: 10px;
+    background-color: #e9ecef; /* Outer layer background */
+    overflow: auto; /* Allows scrolling when content exceeds the viewport */
+}
+
+.roomNameContainer {
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom:  20px;
+    margin-bottom: 10px;  /* Space between room name and sublayer */
+}
+
+.roomName {
+    color: #0088cc;
+    margin: 0;
+    text-shadow: rgb(0, 255, 208) 1px 0 10px;
+}
+
+.tab {
+    width: 20px; /* Adjust width as needed */
+}
+
+.subLayer {
+    flex: 1;
+    background-color: #f7f7f7;  /* Same as room name container */
+    border-radius: 12px;
+    padding: 10px;  /* Uniform padding around the sublayer */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.searchInputContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%; 
+}
+
+.searchInput {
+    box-sizing: border-box;
+    flex-grow: 1;
+    padding: 8px;
+    padding-right: 30px; /* Make room for the spinner without overlapping text */
+    width: 100%; 
+    margin: 0;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #eee;
+    height: 36px;
+}
+
+.searchInput:focus {
+    border-color: #0088cc;
+}
+
+.loadingSpinner {
+    position: absolute;
+    right: 0px;  
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0,0,0,.1);
+    border-radius: 50%;
+    border-top-color: #666;
+    animation: spin 1s infinite linear;
+    margin-right: 10px; 
+    z-index: 100;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.adminList, .trackList {
+    list-style: none;
+    padding: 0;
+    margin-top: 0;
+}
+
+.admin, .track {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+}
+
+.stickySearch {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: #f7f7f7;  /* Ensures the sticky search matches the sublayer background */
+}
+
+.albumImage {
+    width: 50px;  /* Set a fixed width for images */
+    height: 50px;  /* Set a fixed height for images */
+    object-fit: cover;  /* Ensure the image covers the area without distorting aspect ratio */
+    margin-right: 10px;  /* Add some spacing between the image and text */
+}
+
+/* Existing styles... */
+
+.trackItem {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd; /* Adds a line separator */
+    border-radius: 10px;
+    overflow: hidden; /* Prevents overflow issues */
+    position: relative; /* Ensure stacking context for swipe effect */
+    background-color: #f7f7f7;
+    width: calc(100% - 20px); /* Ensure trackItem spans full width of its container */
+}
+
+.albumImage {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 10px;
+    border-radius: 4px; /* Rounded corners for the image */
+}
+
+.trackInfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0; /* Prevents flex items from growing past their content */
+}
+
+.artistName {
+    font-weight: bold;
+    color: black;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ellipsis for overflowing text */
+}
+
+.trackName {
+    color: grey;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ellipsis for overflowing text */
+}
+
+.resultsContainer {
+    position: absolute; /* Position absolutely within the subLayer */
+    top: 100%; /* Directly below the search input */
+    left: 0; /* Align left edge with the container */
+    right: 0; /* Align right edge with the container */
+    width: calc(100% - 20px); /* Adjust the width to account for padding */
+    max-height: 66vh; /* 2/3 of the viewport height, adjust as necessary */
+    overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    background-color: #f7f7f7;
+    border-top: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0 10px; /* Padding inside container to prevent lines touching the edges */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 15; /* Higher than topChart but lower than sticky search */
+}
+
+
+.trackList {
+    padding: 0;
+}
+
+.searchContainer {
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;  /* Makes search input sticky at the top */
+    z-index: 20; /* Ensure this is above other content */
+    background: inherit;
+}
+
+.topChartContainer {
+    margin-top: 10px; /* Space below search container */
+    z-index: 5; /* Lower than searchContainer */
+}
+
+.voteCount {
+    margin-left: auto; /* Pushes the vote count to the right */
+    background-color: #f0f0f0; /* Light grey background */
+    border-radius: 8px; /* Rounded corners */
+    padding: 5px 10px; /* Padding around text */
+    align-self: center; /* Align in the center vertically within the track item */
+    font-size: 0.9em; /* Slightly smaller font size */
+    font-weight: bold; /* Make the font bold */
+    color: #333; /* Dark grey color for text */
+}
+
+/* New styles for glowing border effect */
+.votedTrack {
+    position: relative;
+    overflow: hidden; /* Ensure the glow effect does not overflow the container */
+    border-radius: 10px; /* Ensure the same border radius as the glow effect */
+}
+
+.votedTrack:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    filter: blur(10px); /* Adjust blur as needed */
+    background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
+    animation: rotate 4s linear infinite;
+    z-index: 0;
+    /* z-index: 1000; */
+}
+
+.votedTrack:after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border-radius: 7px;
+    background: #f7f7f7;
+    z-index: 2;
+    /* z-index: 1000; */
+}
+
+.innerContent {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Ensure it spans the full width of the list item */
+    position: relative;
+    z-index: 3; /* Ensure this is above the pseudo-elements */
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(1turn);
+    }
+}

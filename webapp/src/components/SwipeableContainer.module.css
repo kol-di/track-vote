@@ -1,0 +1,35 @@
+.swipeableContainer {
+    position: relative;
+    overflow: hidden;
+}
+
+.swiped .swipeableContent {
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+
+.swipeableContent {
+    transition: transform 0.3s ease;
+    display: flex; /* Ensure the content uses flexbox */
+    align-items: center; /* Align items in the center */
+    overflow: hidden; /* Prevent overflow issues */
+    position: relative; /* Ensure stacking context */
+    background-color: inherit; /* Inherit background color from parent */
+    width: 100%; /* Ensure swipeableContent spans full width of its container */
+    z-index: 1;
+}
+
+.deleteButton {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    height: 100%;
+    z-index: 0;
+}
