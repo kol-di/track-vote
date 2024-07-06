@@ -402,7 +402,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                             className={`${styles.searchInput}`}
                             onFocus={handleFocus}
                             ref={searchInputRef}
-                            style={{ backgroundColor: searchActive ? '#fff' : '#eee' }}
+                            style={{ backgroundColor: searchActive ? '#7954AC' : '#523875' }}
                         />
                         {isLoading && <div className={styles.loadingSpinner}></div>}
                     </div>
@@ -413,8 +413,8 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                                     <li key={index} className={styles.trackItem} onClick={() => updateTopChartFromSpotify(track)}>
                                         <Image src={track.album.images.slice(-1)[0].url} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
                                         <div className={styles.trackInfo}>
-                                            <div className={styles.artistName}>{track.artists.map(artist => artist.name).join(', ')}</div>
                                             <div className={styles.trackName}>{track.name}</div>
+                                            <div className={styles.artistName}>{track.artists.map(artist => artist.name).join(', ')}</div>
                                         </div>
                                         {track.votes > 0 && (
                                             <div className={styles.voteCount}>{track.votes}</div>
@@ -443,8 +443,8 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                                                 <div className={styles.innerContent} onClick={() => updateTopChartFromList(track)}>
                                                     <img src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640}></img>
                                                     <div className={styles.trackInfo}>
-                                                        <div className={styles.artistName}>{track.artists.join(', ')}</div>
                                                         <div className={styles.trackName}>{track.name}</div>
+                                                        <div className={styles.artistName}>{track.artists.join(', ')}</div>
                                                     </div>
                                                     <div className={styles.voteCount}>
                                                         {track.votes}

@@ -1,7 +1,7 @@
 .swipeableContainer {
     position: relative;
     width: 100%;
-    background-color: #f7f7f7;
+    background-color: #523875;
     overflow: hidden;
     z-index: 2;
 }
@@ -27,7 +27,7 @@
     right: 0;
     top: 50%; /* Position from the top 50% */
     transform: translateY(-50%);
-    background-color: red;
+    background-color: #F9583C;
     color: white;
     border: none;
     border-top-right-radius: 12px;
