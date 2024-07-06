@@ -1,9 +1,26 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import debounce from 'lodash/debounce';
 import styles from './RoomComponent.module.css';
+import classNames from 'classnames';
 import Image from 'next/image';
 import Marquee from "react-fast-marquee";
+import { Flipper, Flipped } from 'react-flip-toolkit';
 import SwipeableContainer from './SwipeableContainer';
+
+
+
+const simultaneousAnimations = ({
+    hideEnteringElements,
+    animateEnteringElements,
+    animateExitingElements,
+    animateFlippedElements
+  }) => {
+    console.log('Flipper triggered');
+    hideEnteringElements();
+    animateExitingElements();
+    animateFlippedElements();
+    animateEnteringElements();
+  };
 
 
 const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
@@ -11,7 +28,10 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [topChart, setTopChart] = useState(roomData.tracks || []);
+    // const [topChart, setTopChart] = useState(roomData.tracks || []);
+    const [localTopChart, setLocalTopChart] = useState(roomData.tracks || []);
+    const [globalTopChart, setGlobalTopChart] = useState(roomData.tracks || []);
+    // const [flipped, setFlipped] = useState(false); 
     const searchInputRef = useRef(null);
     const searchContainerRef = useRef(null);
     const resultSelectedRef = useRef(false);
@@ -23,8 +43,31 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
         setCurrentVoteId(latestVoteId);
       }, [latestVoteId]);
 
-    const updateTopChartState = (updates) => {
-        setTopChart(prevTopChart => {
+    // Sync global state every 5 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            // setFlipped((prevFlipped) => !prevFlipped); // Toggle flip state
+            setTimeout(() => {
+                setLocalTopChart(globalTopChart);
+            }, 600); // Duration of flip animation
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [globalTopChart]);
+
+    // const handleEnterUpdateDelete = async ({
+    //     hideEnteringElements,
+    //     animateEnteringElements,
+    //     animateExitingElements,
+    //     animateFlippedElements
+    // }) => {
+    //     hideEnteringElements();
+    //     await animateExitingElements();
+    //     await animateFlippedElements();
+    //     animateEnteringElements();
+    // };
+
+    const updateTopChartState = (updates, isLocalUpdate = false) => {
+        const updateChart = (prevTopChart, updates) => {
             let newTopChart = [...prevTopChart];
     
             updates.forEach(update => {
@@ -79,7 +122,13 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
     
             // console.log("Top chart after update", JSON.stringify(newTopChart, null, 2));
             return newTopChart;
-        });
+        };
+
+        setGlobalTopChart(prevGlobalTopChart => updateChart(prevGlobalTopChart, updates));
+
+        if (isLocalUpdate) {
+            setLocalTopChart(prevLocalTopChart => updateChart(prevLocalTopChart, updates));
+        }
     }
      
 
@@ -90,7 +139,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
         if (response.ok && !resultSelectedRef.current) {
             const data = await response.json();
             const enhancedTracks = data.tracks.items.map(track => {
-                const existingTrack = topChart.find(t => t.spotifyId === track.id);
+                const existingTrack = localTopChart.find(t => t.spotifyId === track.id);
                 return {
                     ...track,
                     votes: existingTrack ? existingTrack.votes : 0
@@ -148,7 +197,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                 trackUpdates.push({ track: { spotifyId: decrementedTrackId }, increment: -1 });
             }
 
-            updateTopChartState(trackUpdates);
+            updateTopChartState(trackUpdates, true);
             
             socket.emit('updateTopChart', {
                 roomId: roomData.id,
@@ -208,7 +257,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                 trackUpdates.push({ track: { spotifyId: decrementedTrackId }, increment: -1 });
             }
 
-            updateTopChartState(trackUpdates);
+            updateTopChartState(trackUpdates, true);
             
             socket.emit('updateTopChart', {
                 roomId: roomData.id,
@@ -230,7 +279,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
 
         const handleLatestData = data => {
             console.log('Received latestData');
-            setTopChart(data.tracks);
+            setGlobalTopChart(data.tracks);
         };
 
         if (socket) {
@@ -269,7 +318,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
             ];
     
             console.log("Deleting track, local top chart updates:", trackUpdates);
-            updateTopChartState(trackUpdates);
+            updateTopChartState(trackUpdates, true);
 
             setCurrentVoteId(currentVoteId => {
                 if (decrementedTrackId === currentVoteId) {
@@ -393,42 +442,44 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                         </div>
                     )}
                 </div>
-                {topChart.length > 0 && (
+                {localTopChart.length > 0 && (
                     <div className={styles.topChartContainer}>
-                        <ul className={styles.trackList}>
-                            {topChart.map((track) => (
-                                <SwipeableContainer 
-                                    key={track.spotifyId}
-                                    isAdmin={isAdmin}
-                                    isSwiped={swipedTrackId === track.spotifyId}
-                                    onSwipe={() => setSwipedTrackId(track.spotifyId)}
-                                    onDelete={() => handleDeleteTrack(track.spotifyId)}
-                                    onClose={() => setSwipedTrackId(null)}
-                                >
-                                    <li key={track.spotifyId} className={`${styles.trackItem} ${track.spotifyId === currentVoteId ? styles.votedTrack : ''}`} onClick={() => updateTopChartFromList(track)}>
-                                        <div className={styles.innerContent}>
-                                            <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
-                                            <div className={styles.trackInfo}>
-                                                <div className={styles.artistName}>{track.artists.join(', ')}</div>
-                                                <div className={styles.trackName}>{track.name}</div>
-                                            </div>
-                                            <div className={styles.voteCount}>
-                                                {track.votes} {/* Display the vote count */}
-                                            </div>
-                                            {/* <div>{isAdmin ? "admin" : "not admin"}</div> */}
-                                            {/* {isAdmin && (
-                                                <button onClick={(e) => { e.stopPropagation(); handleDeleteTrack(track.spotifyId); }}>Delete</button>
-                                            )} */}
-                                        </div>
-                                    </li>
-                                </SwipeableContainer>
-                            ))}
-                        </ul>
+                        <Flipper flipKey={localTopChart.map(track => track.spotifyId).join(',')} handleEnterUpdateDelete={simultaneousAnimations}>
+                            <ul className={styles.trackList} flipKey={localTopChart.map(track => track.spotifyId).join(',')}>
+                                {localTopChart.map((track, index) => (
+                                    // <SwipeableContainer 
+                                    //     key={track.spotifyId}
+                                    //     isAdmin={isAdmin}
+                                    //     isSwiped={swipedTrackId === track.spotifyId}
+                                    //     onSwipe={() => setSwipedTrackId(track.spotifyId)}
+                                    //     onDelete={() => handleDeleteTrack(track.spotifyId)}
+                                    //     onClose={() => setSwipedTrackId(null)}
+                                    // >
+
+                                        <Flipped flipId={`track-${track.spotifyId}`}>
+                                            <li key={`${track.spotifyId}`} className={`${styles.trackItem} ${track.spotifyId === currentVoteId ? styles.votedTrack : ''}`} onClick={() => updateTopChartFromList(track)}>
+                                                <div className={styles.innerContent}>
+                                                    <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
+                                                    <div className={styles.trackInfo}>
+                                                        <div className={styles.artistName}>{track.artists.join(', ')}</div>
+                                                        <div className={styles.trackName}>{track.name}</div>
+                                                    </div>
+                                                    <div className={styles.voteCount}>
+                                                        {track.votes}
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </Flipped>
+                                        
+                                    // {/* </SwipeableContainer> */}
+                                ))}
+                            </ul>
+                        </Flipper>
                     </div>
                 )}
             </div>
         </div>
-    );
+    );    
 };
 
 export default RoomComponent;
