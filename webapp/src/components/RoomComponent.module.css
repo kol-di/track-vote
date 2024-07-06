@@ -104,8 +104,6 @@
 }
 
 .albumImage {
-    width: 50px;  /* Set a fixed width for images */
-    height: 50px;  /* Set a fixed height for images */
     object-fit: cover;  /* Ensure the image covers the area without distorting aspect ratio */
     margin-right: 10px;  /* Add some spacing between the image and text */
 }

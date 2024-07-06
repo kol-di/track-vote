@@ -447,7 +447,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                                                     onClose={() => setSwipedTrackId(null)}
                                                 >
                                                     <div className={styles.innerContent}>
-                                                        <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
+                                                        <img src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640}></img>
                                                         <div className={styles.trackInfo}>
                                                             <div className={styles.artistName}>{track.artists.join(', ')}</div>
                                                             <div className={styles.trackName}>{track.name}</div>
