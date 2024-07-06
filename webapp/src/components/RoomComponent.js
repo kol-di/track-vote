@@ -430,7 +430,7 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                         <Flipper flipKey={localTopChart.map(track => track.spotifyId).join(',')} handleEnterUpdateDelete={simultaneousAnimations}>
                             <ul className={styles.trackList} flipKey={localTopChart.map(track => track.spotifyId).join(',')}>
                                 {localTopChart.map((track) => (
-                                    <Flipped flipId={`track-${track.spotifyId}`}>
+                                    <Flipped key='' flipId={`track-${track.spotifyId}`}>
                                         <li key={`${track.spotifyId}`} className={`${styles.trackItem} ${track.spotifyId === currentVoteId ? styles.votedTrack : ''}`}>
                                             <SwipeableContainer 
                                                 key={track.spotifyId}
