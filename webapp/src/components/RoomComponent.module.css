@@ -108,8 +108,6 @@
     margin-right: 10px;  /* Add some spacing between the image and text */
 }
 
-/* Existing styles... */
-
 .trackItem {
     display: flex;
     align-items: center;
@@ -200,7 +198,7 @@
     color: #333; /* Dark grey color for text */
 }
 
-/* New styles for glowing border effect */
+/* Styles for glowing border effect */
 .votedTrack {
     position: relative;
     overflow: hidden; /* Ensure the glow effect does not overflow the container */
