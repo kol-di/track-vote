@@ -54,18 +54,6 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
         return () => clearInterval(interval);
     }, [globalTopChart]);
 
-    // const handleEnterUpdateDelete = async ({
-    //     hideEnteringElements,
-    //     animateEnteringElements,
-    //     animateExitingElements,
-    //     animateFlippedElements
-    // }) => {
-    //     hideEnteringElements();
-    //     await animateExitingElements();
-    //     await animateFlippedElements();
-    //     animateEnteringElements();
-    // };
-
     const updateTopChartState = (updates, isLocalUpdate = false) => {
         const updateChart = (prevTopChart, updates) => {
             let newTopChart = [...prevTopChart];
@@ -447,31 +435,31 @@ const RoomComponent = ({ roomData, socket, isAdmin, latestVoteId }) => {
                         <Flipper flipKey={localTopChart.map(track => track.spotifyId).join(',')} handleEnterUpdateDelete={simultaneousAnimations}>
                             <ul className={styles.trackList} flipKey={localTopChart.map(track => track.spotifyId).join(',')}>
                                 {localTopChart.map((track, index) => (
-                                    // <SwipeableContainer 
-                                    //     key={track.spotifyId}
-                                    //     isAdmin={isAdmin}
-                                    //     isSwiped={swipedTrackId === track.spotifyId}
-                                    //     onSwipe={() => setSwipedTrackId(track.spotifyId)}
-                                    //     onDelete={() => handleDeleteTrack(track.spotifyId)}
-                                    //     onClose={() => setSwipedTrackId(null)}
-                                    // >
 
                                         <Flipped flipId={`track-${track.spotifyId}`}>
                                             <li key={`${track.spotifyId}`} className={`${styles.trackItem} ${track.spotifyId === currentVoteId ? styles.votedTrack : ''}`} onClick={() => updateTopChartFromList(track)}>
-                                                <div className={styles.innerContent}>
-                                                    <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
-                                                    <div className={styles.trackInfo}>
-                                                        <div className={styles.artistName}>{track.artists.join(', ')}</div>
-                                                        <div className={styles.trackName}>{track.name}</div>
+                                                <SwipeableContainer 
+                                                    key={track.spotifyId}
+                                                    isAdmin={isAdmin}
+                                                    isSwiped={swipedTrackId === track.spotifyId}
+                                                    onSwipe={() => setSwipedTrackId(track.spotifyId)}
+                                                    onDelete={() => handleDeleteTrack(track.spotifyId)}
+                                                    onClose={() => setSwipedTrackId(null)}
+                                                >
+                                                    <div className={styles.innerContent}>
+                                                        <Image src={track.albumCoverUrl} alt="Album Cover" className={styles.albumImage} width={640} height={640} />
+                                                        <div className={styles.trackInfo}>
+                                                            <div className={styles.artistName}>{track.artists.join(', ')}</div>
+                                                            <div className={styles.trackName}>{track.name}</div>
+                                                        </div>
+                                                        <div className={styles.voteCount}>
+                                                            {track.votes}
+                                                        </div>
                                                     </div>
-                                                    <div className={styles.voteCount}>
-                                                        {track.votes}
-                                                    </div>
-                                                </div>
+                                                </SwipeableContainer>
                                             </li>
                                         </Flipped>
                                         
-                                    // {/* </SwipeableContainer> */}
                                 ))}
                             </ul>
                         </Flipper>
