@@ -28,6 +28,7 @@ services:
       - shared-volume:/usr/src/shared
     depends_on:
       - webapp
+    restart: unless-stopped
     environment:
       - LOCALTUNNEL_FILE_PATH=/usr/src/shared/localtunnel_url.txt
       - PYTHONUNBUFFERED=1
