@@ -25,6 +25,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - webapp
+    restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1
       - WEBAPP_URL=http://webapp:3000
